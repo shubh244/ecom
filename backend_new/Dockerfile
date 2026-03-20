@@ -26,7 +26,8 @@ RUN chmod -R 775 storage bootstrap/cache
 
 EXPOSE 8000
 
-# Run database migrations on container start (important for free tiers where
-# we may not have an interactive shell). Then start the API server.
-CMD ["sh", "-c", "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+# Run database migrations + seed dummy data on container start (important
+# for free tiers where we may not have an interactive shell). Then start
+# the API server.
+CMD ["sh", "-c", "php artisan migrate --force && php artisan db:seed --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
 
