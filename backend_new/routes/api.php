@@ -20,10 +20,11 @@ use App\Http\Controllers\Api\OrderController;
 
 // Products
 Route::get('/products', [ProductController::class, 'index']);
-Route::get('/products/{id}', [ProductController::class, 'show']);
 Route::get('/products/category/{category}', [ProductController::class, 'getByCategory']);
 Route::get('/products/featured', [ProductController::class, 'getFeatured']);
 Route::get('/products/hot-offers', [ProductController::class, 'getHotOffers']);
+// Constrain {id} to numbers so "featured" / "hot-offers" never match this route.
+Route::get('/products/{id}', [ProductController::class, 'show'])->whereNumber('id');
 
 // Categories
 Route::get('/categories', [CategoryController::class, 'index']);
