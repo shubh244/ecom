@@ -1,0 +1,10 @@
+node_modules
+vendor
+.git
+.github
+storage/logs
+.env
+
+# Next to keep builds fast; not needed in the container runtime image
+*.log
+

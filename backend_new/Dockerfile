@@ -1,0 +1,31 @@
+FROM php:8.2-cli
+
+# System dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    unzip \
+    libzip-dev \
+    libpq-dev \
+  && docker-php-ext-install zip pdo_mysql pdo_pgsql \
+  && rm -rf /var/lib/apt/lists/*
+
+# Composer
+COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+
+WORKDIR /app
+
+# Install PHP dependencies first for better Docker layer caching
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Copy application code
+COPY . .
+
+# Ensure Laravel cache/storage directories are writable
+RUN chmod -R 775 storage bootstrap/cache
+
+EXPOSE 8000
+
+# Render sets PORT automatically; default to 8000 for local runs
+CMD ["sh", "-c", "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"]
+
