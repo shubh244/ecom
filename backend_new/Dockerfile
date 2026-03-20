@@ -14,12 +14,12 @@ COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
 
 WORKDIR /app
 
-# Install PHP dependencies first for better Docker layer caching
-COPY composer.json composer.lock ./
-RUN composer install --no-dev --optimize-autoloader --no-interaction
-
-# Copy application code
+# Copy application code first, because Composer's post-autoload-dump step
+# runs `php artisan package:discover` which requires `artisan` to exist.
 COPY . .
+
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Ensure Laravel cache/storage directories are writable
 RUN chmod -R 775 storage bootstrap/cache
