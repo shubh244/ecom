@@ -1,12 +1,12 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { Suspense, useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { apiClient } from '@/lib/api'
 import ProductCard from '@/components/ProductCard'
 import { Product } from '@/lib/types'
 
-export default function SearchResultsPage() {
+function SearchResultsContent() {
   const searchParams = useSearchParams()
   const query = (searchParams.get('q') || '').trim()
 
@@ -93,6 +93,22 @@ export default function SearchResultsPage() {
         )}
       </div>
     </div>
+  )
+}
+
+export default function SearchResultsPage() {
+  return (
+    <Suspense
+      fallback={
+        <div className="min-h-screen bg-gray-50 py-8">
+          <div className="container mx-auto px-4 py-12 text-center text-gray-600">
+            Loading...
+          </div>
+        </div>
+      }
+    >
+      <SearchResultsContent />
+    </Suspense>
   )
 }
 

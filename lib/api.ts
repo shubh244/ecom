@@ -55,8 +55,8 @@ class ApiClient {
     const queryParams = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString())
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value))
         }
       })
     }
@@ -159,8 +159,8 @@ class ApiClient {
     const queryParams = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString())
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value))
         }
       })
     }
@@ -197,8 +197,8 @@ class ApiClient {
     const queryParams = new URLSearchParams()
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) {
-          queryParams.append(key, value.toString())
+        if (value !== undefined && value !== null) {
+          queryParams.append(key, String(value))
         }
       })
     }
