@@ -46,6 +46,7 @@ Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{id}', [OrderController::class, 'show'])->whereNumber('id');
 Route::post('/orders/{id}/payment/report', [OrderPaymentController::class, 'report'])->whereNumber('id');
+Route::post('/orders/{id}/payment/screenshot', [OrderPaymentController::class, 'uploadScreenshot'])->whereNumber('id');
 
 // Admin routes (protected)
 Route::middleware(['api', 'auth:sanctum'])->group(function () {

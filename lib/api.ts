@@ -239,6 +239,31 @@ class ApiClient {
       body: JSON.stringify(body),
     })
   }
+
+  async uploadPaymentScreenshot(orderId: number, file: File) {
+    const url = `${this.baseUrl}/orders/${orderId}/payment/screenshot`
+    const form = new FormData()
+    form.append('screenshot', file)
+    const response = await fetch(url, {
+      method: 'POST',
+      body: form,
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+    if (!response.ok) {
+      let msg = response.statusText
+      try {
+        const err = await response.json()
+        msg = err.message || JSON.stringify(err)
+      } catch {
+        /* ignore */
+      }
+      throw new Error(msg)
+    }
+    const json = (await response.json()) as ApiResponse<any>
+    return json.data
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)

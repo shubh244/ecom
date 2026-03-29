@@ -111,7 +111,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $orders = Order::with(['items.product', 'payments'])
+        $orders = Order::with(['items.product', 'payments', 'paymentScreenshots'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -126,7 +126,7 @@ class OrderController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $order = Order::with(['items.product', 'payments'])->findOrFail($id);
+        $order = Order::with(['items.product', 'payments', 'paymentScreenshots'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

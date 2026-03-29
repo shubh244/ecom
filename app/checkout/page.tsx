@@ -1,12 +1,16 @@
 'use client'
 
 import { useState } from 'react'
+import dynamic from 'next/dynamic'
 import { useRouter } from 'next/navigation'
+import { QRCodeSVG } from 'qrcode.react'
 import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import { FiUser, FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
+
+const UpiQrScanner = dynamic(() => import('@/components/UpiQrScanner'), { ssr: false })
 
 type CheckoutStep = 'form' | 'payment'
 
@@ -30,6 +34,8 @@ export default function CheckoutPage() {
   const [step, setStep] = useState<CheckoutStep>('form')
   const [placed, setPlaced] = useState<PlacedCheckout | null>(null)
   const [utr, setUtr] = useState('')
+  const [screenshotUploading, setScreenshotUploading] = useState(false)
+  const [screenshotUrls, setScreenshotUrls] = useState<string[]>([])
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -121,24 +127,59 @@ export default function CheckoutPage() {
     )
   }
 
+  const handleScreenshotChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file || !placed) return
+    setScreenshotUploading(true)
+    try {
+      const data = await apiClient.uploadPaymentScreenshot(placed.order.id, file)
+      if (data?.url) {
+        setScreenshotUrls((prev) => [...prev, data.url as string])
+      }
+      showToast('Payment screenshot uploaded for your order.', 'success')
+    } catch (err) {
+      console.error(err)
+      showToast('Could not upload screenshot. Try a smaller image (JPG/PNG).', 'error')
+    } finally {
+      setScreenshotUploading(false)
+      e.target.value = ''
+    }
+  }
+
   if (step === 'payment' && placed) {
     return (
       <div className="min-h-screen bg-gray-50 py-8">
-        <div className="container mx-auto px-4 max-w-lg">
+        <div className="container mx-auto px-4 max-w-3xl">
           <h1 className="text-3xl font-bold mb-2">Pay with UPI</h1>
           <p className="text-gray-600 text-sm mb-6">
-            Order <span className="font-mono font-semibold">{placed.order.order_number}</span> · Amount{' '}
+            Order <span className="font-mono font-semibold">{placed.order.order_number}</span>{' '}
+            <span className="text-gray-400">(ID: {placed.order.id})</span> · Amount{' '}
             <span className="font-semibold">₹{Number(placed.amount).toLocaleString()}</span>
           </p>
 
-          <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+          <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
             <p className="text-sm text-gray-600">
               Pay to UPI ID: <span className="font-mono font-semibold">{placed.merchant_upi_vpa}</span>
             </p>
             <p className="text-xs text-gray-500">
-              After you pay in PhonePe / GPay / Paytm, confirm below. Automatic bank verification needs a
-              payment gateway (Razorpay, etc.); this flow records what you report for admin review.
+              Scan the QR below with PhonePe / Google Pay / Paytm, or use the app button. After paying,
+              upload a screenshot of the success screen so we can match it to your order. Final bank
+              confirmation still needs a payment gateway later.
             </p>
+
+            <div className="grid gap-6 md:grid-cols-2">
+              <div className="flex flex-col items-center rounded-lg border border-gray-100 bg-gray-50 p-4">
+                <h3 className="text-sm font-semibold text-gray-800 mb-3">Scan to pay</h3>
+                <div className="rounded-lg bg-white p-3 shadow-sm">
+                  <QRCodeSVG value={placed.upi_pay_url} size={220} level="M" includeMargin />
+                </div>
+                <p className="mt-3 text-center text-xs text-gray-500">
+                  Open your UPI app and scan this code
+                </p>
+              </div>
+
+              <UpiQrScanner />
+            </div>
 
             <button
               type="button"
@@ -147,6 +188,38 @@ export default function CheckoutPage() {
             >
               Open UPI app to pay
             </button>
+
+            <div className="rounded-lg border border-dashed border-gray-300 p-4">
+              <h3 className="text-sm font-semibold text-gray-800 mb-2">Upload payment screenshot</h3>
+              <p className="text-xs text-gray-600 mb-3">
+                Saves proof against order #{placed.order.order_number} (order ID {placed.order.id}) for admin review.
+              </p>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+                disabled={screenshotUploading}
+                onChange={handleScreenshotChange}
+                className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+              />
+              {screenshotUploading && (
+                <p className="mt-2 text-xs text-gray-500">Uploading…</p>
+              )}
+              {screenshotUrls.length > 0 && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  {screenshotUrls.map((u, i) => (
+                    <a
+                      key={`${u}-${i}`}
+                      href={u}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="text-xs text-primary underline"
+                    >
+                      View upload {i + 1}
+                    </a>
+                  ))}
+                </div>
+              )}
+            </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">UTR / reference (optional)</label>

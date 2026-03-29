@@ -39,4 +39,9 @@ class Order extends Model
     {
         return $this->hasMany(OrderPayment::class)->orderBy('created_at');
     }
+
+    public function paymentScreenshots()
+    {
+        return $this->hasMany(OrderPaymentScreenshot::class)->orderByDesc('created_at');
+    }
 }

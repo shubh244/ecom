@@ -18,6 +18,14 @@ interface OrderPayment {
   created_at: string
 }
 
+interface OrderPaymentScreenshot {
+  id: number
+  order_id: number
+  url: string
+  original_name?: string | null
+  created_at: string
+}
+
 interface Order {
   id: number
   order_number: string
@@ -29,6 +37,7 @@ interface Order {
   total_amount: number
   items: OrderItem[]
   payments?: OrderPayment[]
+  payment_screenshots?: OrderPaymentScreenshot[]
   created_at: string
 }
 
@@ -244,6 +253,28 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }: {
         <div className="mb-6">
           <h3 className="font-semibold mb-2">Shipping Address</h3>
           <p className="text-sm text-gray-600 whitespace-pre-line">{order.shipping_address}</p>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Payment screenshots</h3>
+          {order.payment_screenshots && order.payment_screenshots.length > 0 ? (
+            <div className="flex flex-wrap gap-3">
+              {order.payment_screenshots.map((s) => (
+                <a
+                  key={s.id}
+                  href={s.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="block border rounded-lg overflow-hidden w-28 h-28 bg-gray-100"
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img src={s.url} alt={s.original_name || 'Payment proof'} className="w-full h-full object-cover" />
+                </a>
+              ))}
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No screenshots uploaded.</p>
+          )}
         </div>
 
         <div className="mb-6">
