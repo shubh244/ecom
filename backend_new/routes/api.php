@@ -6,6 +6,7 @@ use App\Http\Controllers\Api\ProductController;
 use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
+use App\Http\Controllers\Api\OrderPaymentController;
 
 /*
 |--------------------------------------------------------------------------
@@ -43,7 +44,8 @@ Route::prefix('cart')->group(function () {
 // Orders
 Route::post('/orders', [OrderController::class, 'store']);
 Route::get('/orders', [OrderController::class, 'index']);
-Route::get('/orders/{id}', [OrderController::class, 'show']);
+Route::get('/orders/{id}', [OrderController::class, 'show'])->whereNumber('id');
+Route::post('/orders/{id}/payment/report', [OrderPaymentController::class, 'report'])->whereNumber('id');
 
 // Admin routes (protected)
 Route::middleware(['api', 'auth:sanctum'])->group(function () {

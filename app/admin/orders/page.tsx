@@ -4,6 +4,19 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FiEye, FiCheck, FiX } from 'react-icons/fi'
+import { apiClient } from '@/lib/api'
+
+interface OrderPayment {
+  id: number
+  order_id: number
+  status: string
+  method: string
+  amount: string | number
+  currency?: string
+  utr_reference?: string | null
+  note?: string | null
+  created_at: string
+}
 
 interface Order {
   id: number
@@ -15,6 +28,7 @@ interface Order {
   status: string
   total_amount: number
   items: OrderItem[]
+  payments?: OrderPayment[]
   created_at: string
 }
 
@@ -45,19 +59,13 @@ export default function AdminOrders() {
 
   const fetchOrders = async () => {
     try {
-      const url = statusFilter === 'all'
-        ? 'http://localhost:8000/api/admin/orders?per_page=100'
-        : `http://localhost:8000/api/admin/orders?status=${statusFilter}&per_page=100`
-      
-      const response = await fetch(url, {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-        },
-      })
-      const data = await response.json()
-      if (data.success) {
-        setOrders(data.data.data || data.data)
+      const params: Record<string, string | number> = { per_page: 100 }
+      if (statusFilter !== 'all') {
+        params.status = statusFilter
       }
+      const paginator = await apiClient.getAdminOrders(params)
+      const list = paginator?.data
+      setOrders(Array.isArray(list) ? list : [])
     } catch (error) {
       console.error('Error fetching orders:', error)
     } finally {
@@ -67,20 +75,11 @@ export default function AdminOrders() {
 
   const updateOrderStatus = async (orderId: number, status: string) => {
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/orders/${orderId}/status`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify({ status }),
-      })
-      const data = await response.json()
-      if (data.success) {
-        fetchOrders()
-        if (selectedOrder?.id === orderId) {
-          setSelectedOrder({ ...selectedOrder, status })
-        }
+      await apiClient.updateOrderStatus(orderId, status)
+      await fetchOrders()
+      if (selectedOrder?.id === orderId) {
+        const fresh = await apiClient.getAdminOrder(orderId)
+        setSelectedOrder(fresh)
       }
     } catch (error) {
       console.error('Error updating order status:', error)
@@ -178,7 +177,14 @@ export default function AdminOrders() {
                   </td>
                   <td className="px-4 py-3">
                     <button
-                      onClick={() => setSelectedOrder(order)}
+                      onClick={async () => {
+                        try {
+                          const full = await apiClient.getAdminOrder(order.id)
+                          setSelectedOrder(full)
+                        } catch {
+                          setSelectedOrder(order)
+                        }
+                      }}
                       className="p-2 bg-blue-500 hover:bg-blue-600 text-white rounded"
                     >
                       <FiEye />
@@ -238,6 +244,50 @@ function OrderDetailModal({ order, onClose, onStatusUpdate }: {
         <div className="mb-6">
           <h3 className="font-semibold mb-2">Shipping Address</h3>
           <p className="text-sm text-gray-600 whitespace-pre-line">{order.shipping_address}</p>
+        </div>
+
+        <div className="mb-6">
+          <h3 className="font-semibold mb-2">Payment history (UPI)</h3>
+          {order.payments && order.payments.length > 0 ? (
+            <div className="border rounded-lg overflow-hidden text-sm">
+              <table className="w-full">
+                <thead className="bg-gray-50">
+                  <tr>
+                    <th className="px-3 py-2 text-left">Time</th>
+                    <th className="px-3 py-2 text-left">Status</th>
+                    <th className="px-3 py-2 text-left">Amount</th>
+                    <th className="px-3 py-2 text-left">UTR</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {order.payments.map((p) => (
+                    <tr key={p.id} className="border-t">
+                      <td className="px-3 py-2 whitespace-nowrap">
+                        {new Date(p.created_at).toLocaleString()}
+                      </td>
+                      <td className="px-3 py-2">
+                        <span
+                          className={`px-2 py-0.5 rounded text-xs font-medium ${
+                            p.status === 'success'
+                              ? 'bg-green-100 text-green-800'
+                              : p.status === 'failed'
+                                ? 'bg-red-100 text-red-800'
+                                : 'bg-yellow-100 text-yellow-800'
+                          }`}
+                        >
+                          {p.status}
+                        </span>
+                      </td>
+                      <td className="px-3 py-2">₹{Number(p.amount).toLocaleString()}</td>
+                      <td className="px-3 py-2 font-mono text-xs">{p.utr_reference || '—'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          ) : (
+            <p className="text-sm text-gray-500">No payment records yet.</p>
+          )}
         </div>
 
         <div className="mb-6">

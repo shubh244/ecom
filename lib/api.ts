@@ -229,6 +229,16 @@ class ApiClient {
       body: JSON.stringify(orderData),
     })
   }
+
+  async reportOrderPayment(
+    orderId: number,
+    body: { status: 'success' | 'failed'; utr?: string; note?: string }
+  ) {
+    return this.request<any>(`/orders/${orderId}/payment/report`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+  }
 }
 
 export const apiClient = new ApiClient(API_BASE_URL)

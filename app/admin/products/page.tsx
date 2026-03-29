@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FiEdit, FiTrash2, FiPlus, FiSearch } from 'react-icons/fi'
 import { Product, Category } from '@/lib/types'
+import { apiClient } from '@/lib/api'
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
@@ -29,15 +30,9 @@ export default function AdminProducts() {
 
   const fetchProducts = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/admin/products?per_page=100', {
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-        },
-      })
-      const data = await response.json()
-      if (data.success) {
-        setProducts(data.data.data || data.data)
-      }
+      const paginator = await apiClient.getAdminProducts({ per_page: 100 })
+      const list = paginator?.data
+      setProducts(Array.isArray(list) ? list : [])
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
@@ -47,11 +42,8 @@ export default function AdminProducts() {
 
   const fetchCategories = async () => {
     try {
-      const response = await fetch('http://localhost:8000/api/categories')
-      const data = await response.json()
-      if (data.success) {
-        setCategories(data.data)
-      }
+      const list = await apiClient.getCategories()
+      setCategories(Array.isArray(list) ? list : [])
     } catch (error) {
       console.error('Error fetching categories:', error)
     }
@@ -61,16 +53,8 @@ export default function AdminProducts() {
     if (!confirm('Are you sure you want to delete this product?')) return
 
     try {
-      const response = await fetch(`http://localhost:8000/api/admin/products/${id}`, {
-        method: 'DELETE',
-        headers: {
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-        },
-      })
-      const data = await response.json()
-      if (data.success) {
-        fetchProducts()
-      }
+      await apiClient.deleteAdminProduct(id)
+      fetchProducts()
     } catch (error) {
       console.error('Error deleting product:', error)
     }
@@ -266,23 +250,12 @@ function ProductModal({ product, categories, onClose, onSave }: {
     setSaving(true)
 
     try {
-      const url = product
-        ? `http://localhost:8000/api/admin/products/${product.id}`
-        : 'http://localhost:8000/api/admin/products'
-      
-      const response = await fetch(url, {
-        method: product ? 'PUT' : 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('admin_token')}`,
-        },
-        body: JSON.stringify(formData),
-      })
-
-      const data = await response.json()
-      if (data.success) {
-        onSave()
+      if (product) {
+        await apiClient.updateAdminProduct(product.id, formData)
+      } else {
+        await apiClient.createAdminProduct(formData)
       }
+      onSave()
     } catch (error) {
       console.error('Error saving product:', error)
     } finally {

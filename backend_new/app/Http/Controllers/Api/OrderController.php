@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Api;
 use App\Http\Controllers\Controller;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\OrderPayment;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
 
@@ -74,10 +75,34 @@ class OrderController extends Controller
             ]);
         }
 
+        $upiVpa = (string) config('payment.upi_vpa');
+        $upiName = (string) config('payment.upi_merchant_name');
+        $amt = number_format((float) $totalAmount, 2, '.', '');
+        $tn = rawurlencode('Order '.$order->order_number);
+        $upiUrl = 'upi://pay?pa='.rawurlencode($upiVpa)
+            .'&pn='.rawurlencode($upiName)
+            .'&am='.$amt
+            .'&cu=INR'
+            .'&tn='.$tn;
+
+        $payment = OrderPayment::create([
+            'order_id' => $order->id,
+            'status' => 'pending',
+            'amount' => $totalAmount,
+            'method' => 'upi',
+            'currency' => 'INR',
+            'upi_pay_url' => $upiUrl,
+        ]);
+
         return response()->json([
             'success' => true,
             'message' => 'Order created successfully',
-            'data' => $order->load('items.product')
+            'data' => [
+                'order' => $order->load('items.product'),
+                'payment' => $payment,
+                'upi_pay_url' => $upiUrl,
+                'merchant_upi_vpa' => $upiVpa,
+            ],
         ], 201);
     }
 
@@ -86,7 +111,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $orders = Order::with('items.product')
+        $orders = Order::with(['items.product', 'payments'])
             ->orderBy('created_at', 'desc')
             ->paginate(20);
 
@@ -101,7 +126,7 @@ class OrderController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $order = Order::with('items.product')->findOrFail($id);
+        $order = Order::with(['items.product', 'payments'])->findOrFail($id);
 
         return response()->json([
             'success' => true,

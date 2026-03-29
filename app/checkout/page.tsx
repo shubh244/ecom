@@ -4,15 +4,33 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
-import { FiUser, FiMail, FiPhone, FiMapPin, FiCreditCard } from 'react-icons/fi'
+import { FiUser, FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
 import Link from 'next/link'
+import { apiClient } from '@/lib/api'
+
+type CheckoutStep = 'form' | 'payment'
+
+interface PlacedCheckout {
+  order: {
+    id: number
+    order_number: string
+    total_amount: string | number
+  }
+  upi_pay_url: string
+  merchant_upi_vpa: string
+  amount: string | number
+}
 
 export default function CheckoutPage() {
   const { cart, getTotalPrice, clearCart } = useCart()
   const { showToast } = useToast()
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  
+  const [paymentLoading, setPaymentLoading] = useState(false)
+  const [step, setStep] = useState<CheckoutStep>('form')
+  const [placed, setPlaced] = useState<PlacedCheckout | null>(null)
+  const [utr, setUtr] = useState('')
+
   const [formData, setFormData] = useState({
     customer_name: '',
     customer_email: '',
@@ -22,7 +40,7 @@ export default function CheckoutPage() {
   })
 
   const subtotal = getTotalPrice()
-  const tax = subtotal * 0.18 // 18% GST
+  const tax = subtotal * 0.18
   const shippingCost = subtotal > 20000 ? 0 : 500
   const total = subtotal + tax + shippingCost
 
@@ -33,31 +51,27 @@ export default function CheckoutPage() {
     try {
       const orderData = {
         ...formData,
-        items: cart.map(item => ({
-          product_id: parseInt(item.id),
+        items: cart.map((item) => ({
+          product_id: parseInt(item.id, 10),
           quantity: item.quantity,
         })),
       }
 
-      const response = await fetch('http://localhost:8000/api/orders', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(orderData),
-      })
+      const data = await apiClient.createOrder(orderData)
 
-      const data = await response.json()
-
-      if (data.success) {
-        showToast('Order placed successfully!', 'success')
-        clearCart()
-        setTimeout(() => {
-          router.push('/order-success')
-        }, 1500)
-      } else {
+      if (!data?.order) {
         showToast('Failed to place order. Please try again.', 'error')
+        return
       }
+
+      setPlaced({
+        order: data.order,
+        upi_pay_url: data.upi_pay_url,
+        merchant_upi_vpa: data.merchant_upi_vpa,
+        amount: data.order.total_amount ?? total,
+      })
+      setStep('payment')
+      showToast('Order created. Complete UPI payment to finish.', 'success')
     } catch (error) {
       console.error('Error placing order:', error)
       showToast('Error placing order. Please try again.', 'error')
@@ -66,7 +80,35 @@ export default function CheckoutPage() {
     }
   }
 
-  if (cart.length === 0) {
+  const openUpi = () => {
+    if (!placed?.upi_pay_url) return
+    window.location.href = placed.upi_pay_url
+  }
+
+  const reportPayment = async (status: 'success' | 'failed') => {
+    if (!placed) return
+    setPaymentLoading(true)
+    try {
+      await apiClient.reportOrderPayment(placed.order.id, {
+        status,
+        utr: utr.trim() || undefined,
+      })
+      if (status === 'success') {
+        showToast('Payment marked successful.', 'success')
+        clearCart()
+        router.push('/order-success')
+      } else {
+        showToast('Payment marked as failed. You can retry from your UPI app.', 'error')
+      }
+    } catch (err) {
+      console.error(err)
+      showToast('Could not save payment status. Try again.', 'error')
+    } finally {
+      setPaymentLoading(false)
+    }
+  }
+
+  if (cart.length === 0 && step === 'form') {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
@@ -79,13 +121,74 @@ export default function CheckoutPage() {
     )
   }
 
+  if (step === 'payment' && placed) {
+    return (
+      <div className="min-h-screen bg-gray-50 py-8">
+        <div className="container mx-auto px-4 max-w-lg">
+          <h1 className="text-3xl font-bold mb-2">Pay with UPI</h1>
+          <p className="text-gray-600 text-sm mb-6">
+            Order <span className="font-mono font-semibold">{placed.order.order_number}</span> · Amount{' '}
+            <span className="font-semibold">₹{Number(placed.amount).toLocaleString()}</span>
+          </p>
+
+          <div className="bg-white rounded-lg shadow-md p-6 space-y-4">
+            <p className="text-sm text-gray-600">
+              Pay to UPI ID: <span className="font-mono font-semibold">{placed.merchant_upi_vpa}</span>
+            </p>
+            <p className="text-xs text-gray-500">
+              After you pay in PhonePe / GPay / Paytm, confirm below. Automatic bank verification needs a
+              payment gateway (Razorpay, etc.); this flow records what you report for admin review.
+            </p>
+
+            <button
+              type="button"
+              onClick={openUpi}
+              className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold"
+            >
+              Open UPI app to pay
+            </button>
+
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">UTR / reference (optional)</label>
+              <input
+                type="text"
+                value={utr}
+                onChange={(e) => setUtr(e.target.value)}
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                placeholder="12-digit UTR if available"
+              />
+            </div>
+
+            <div className="flex flex-col sm:flex-row gap-3 pt-2">
+              <button
+                type="button"
+                disabled={paymentLoading}
+                onClick={() => reportPayment('success')}
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+              >
+                I have paid successfully
+              </button>
+              <button
+                type="button"
+                disabled={paymentLoading}
+                onClick={() => reportPayment('failed')}
+                className="flex-1 border border-red-300 text-red-700 py-3 rounded-lg font-semibold hover:bg-red-50 disabled:opacity-50"
+              >
+                Payment failed
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="container mx-auto px-4">
         <h1 className="text-3xl font-bold mb-8">Checkout</h1>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Checkout Form */}
           <div className="lg:col-span-2">
             <div className="bg-white rounded-lg shadow-md p-6">
               <h2 className="text-2xl font-bold mb-6">Shipping Information</h2>
@@ -165,13 +268,12 @@ export default function CheckoutPage() {
                   disabled={loading}
                   className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Placing Order...' : 'Place Order'}
+                  {loading ? 'Placing Order...' : 'Place order & pay with UPI'}
                 </button>
               </form>
             </div>
           </div>
 
-          {/* Order Summary */}
           <div className="lg:col-span-1">
             <div className="bg-white rounded-lg shadow-md p-6 sticky top-4">
               <h2 className="text-2xl font-bold mb-6">Order Summary</h2>
@@ -210,25 +312,10 @@ export default function CheckoutPage() {
                   <span>Shipping</span>
                   <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toLocaleString()}`}</span>
                 </div>
-                {subtotal < 20000 && (
-                  <p className="text-sm text-gray-600">
-                    Add ₹{(20000 - subtotal).toLocaleString()} more for free shipping!
-                  </p>
-                )}
                 <div className="flex justify-between font-bold text-lg pt-2 border-t">
                   <span>Total</span>
                   <span className="text-primary">₹{total.toLocaleString()}</span>
                 </div>
-              </div>
-
-              <div className="mt-6 p-4 bg-green-50 rounded-lg">
-                <div className="flex items-center gap-2 text-green-700">
-                  <FiCreditCard />
-                  <span className="font-semibold">Secure Payment</span>
-                </div>
-                <p className="text-sm text-green-600 mt-1">
-                  Your payment information is secure and encrypted
-                </p>
               </div>
             </div>
           </div>
@@ -237,4 +324,3 @@ export default function CheckoutPage() {
     </div>
   )
 }
-

@@ -16,8 +16,10 @@ export default function AdminLogin() {
     setError('')
     setLoading(true)
 
+    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+
     try {
-      const response = await fetch('http://localhost:8000/api/admin/login', {
+      const response = await fetch(`${apiBase}/admin/login`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

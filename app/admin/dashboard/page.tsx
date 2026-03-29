@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { FiPackage, FiShoppingCart, FiClock, FiDollarSign, FiTag, FiGrid } from 'react-icons/fi'
+import { apiClient } from '@/lib/api'
 
 interface DashboardStats {
   total_products: number
@@ -28,14 +29,9 @@ export default function AdminDashboard() {
 
     const fetchDashboard = async () => {
       try {
-        const response = await fetch('http://localhost:8000/api/admin/dashboard', {
-          headers: {
-            'Authorization': `Bearer ${token}`,
-          },
-        })
-        const data = await response.json()
-        if (data.success) {
-          setStats(data.data.stats)
+        const data = await apiClient.getAdminDashboard()
+        if (data?.stats) {
+          setStats(data.stats)
         }
       } catch (error) {
         console.error('Error fetching dashboard:', error)

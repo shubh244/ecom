@@ -14,7 +14,7 @@ class OrderController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = Order::with('items.product');
+        $query = Order::with(['items.product', 'payments']);
         
         if ($request->has('status')) {
             $query->where('status', $request->status);
@@ -41,7 +41,7 @@ class OrderController extends Controller
      */
     public function show($id): JsonResponse
     {
-        $order = Order::with('items.product')->findOrFail($id);
+        $order = Order::with(['items.product', 'payments'])->findOrFail($id);
         
         return response()->json([
             'success' => true,
