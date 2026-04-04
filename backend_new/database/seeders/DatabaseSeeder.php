@@ -20,6 +20,14 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Coffee Tables', 'slug' => 'coffee-tables'],
             ['name' => 'Study Tables', 'slug' => 'study-tables'],
             ['name' => 'Home Decor', 'slug' => 'home-decor'],
+            // Commercial / institutional (matches header routes /office, /outdoor, …)
+            ['name' => 'Office Furniture', 'slug' => 'office'],
+            ['name' => 'Outdoor Furniture', 'slug' => 'outdoor'],
+            ['name' => 'Restaurant & Hotel Furniture', 'slug' => 'restaurant-hotel'],
+            ['name' => 'Banquet Furniture', 'slug' => 'banquet'],
+            ['name' => 'School Furniture', 'slug' => 'school'],
+            ['name' => 'Hospital Furniture', 'slug' => 'hospital'],
+            ['name' => 'Custom & Bespoke', 'slug' => 'customize'],
         ];
 
         foreach ($categories as $category) {

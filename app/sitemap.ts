@@ -1,5 +1,6 @@
 import type { MetadataRoute } from 'next'
 import { getSiteUrl } from '@/lib/site'
+import { COMMERCIAL_ROUTES } from '@/lib/commercialPages'
 
 const CATEGORY_SLUGS = [
   'sofa-sets',
@@ -28,5 +29,12 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.85,
   }))
 
-  return [...staticRoutes, ...categoryRoutes]
+  const commercialRoutes: MetadataRoute.Sitemap = COMMERCIAL_ROUTES.map((slug) => ({
+    url: `${base}/${slug}`,
+    lastModified: now,
+    changeFrequency: 'weekly' as const,
+    priority: 0.82,
+  }))
+
+  return [...staticRoutes, ...categoryRoutes, ...commercialRoutes]
 }
