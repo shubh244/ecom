@@ -81,20 +81,24 @@ export default function ProductCard({ product }: ProductCardProps) {
           )}
         </div>
 
-        {/* Quick Actions */}
-        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-0 group-hover:opacity-100 transition">
+        {/* Quick Actions — always on touch; hover on desktop */}
+        <div className="absolute top-2 right-2 flex flex-col gap-2 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
           <button
+            type="button"
             onClick={() => setIsWishlisted(!isWishlisted)}
-            className={`p-2 rounded-full bg-white shadow-md hover:bg-primary hover:text-white transition ${
+            className={`min-h-[40px] min-w-[40px] flex items-center justify-center rounded-full bg-white/95 shadow-md hover:bg-primary hover:text-white transition touch-manipulation ${
               isWishlisted ? 'bg-primary text-white' : ''
             }`}
+            aria-label={isWishlisted ? 'Remove from wishlist' : 'Add to wishlist'}
           >
             <FiHeart />
           </button>
-          <Link href={`/product/${product.id}`}>
-            <button className="p-2 rounded-full bg-white shadow-md hover:bg-primary hover:text-white transition">
-              <FiEye />
-            </button>
+          <Link
+            href={`/product/${product.id}`}
+            className="min-h-[40px] min-w-[40px] flex items-center justify-center rounded-full bg-white/95 shadow-md hover:bg-primary hover:text-white transition touch-manipulation"
+            aria-label="View product"
+          >
+            <FiEye />
           </Link>
         </div>
       </div>
@@ -136,11 +140,12 @@ export default function ProductCard({ product }: ProductCardProps) {
 
         {/* Add to Cart */}
         <button
+          type="button"
           disabled={!product.in_stock}
           onClick={handleAddToCart}
-          className={`w-full py-2 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+          className={`w-full min-h-[48px] py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 touch-manipulation ${
             product.in_stock
-              ? 'bg-primary hover:bg-secondary text-white'
+              ? 'bg-primary hover:bg-secondary text-white active:scale-[0.98]'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >

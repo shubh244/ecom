@@ -1,8 +1,10 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import './globals.css'
 import Header from '@/components/Header'
-import Footer from '@/components/Footer'
+import AppFooter from '@/components/AppFooter'
 import WhatsAppButton from '@/components/WhatsAppButton'
+import MobileBottomNav from '@/components/MobileBottomNav'
+import AppMain from '@/components/AppMain'
 import { CartProvider } from '@/context/CartContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd } from '@/lib/site'
@@ -42,9 +44,23 @@ export const metadata: Metadata = {
     googleBot: { index: true, follow: true, 'max-image-preview': 'large', 'max-snippet': -1 },
   },
   category: 'shopping',
+  appleWebApp: {
+    capable: true,
+    title: SITE_NAME,
+    statusBarStyle: 'default',
+  },
+  applicationName: SITE_NAME,
 }
 
 const jsonLd = JSON.stringify(organizationJsonLd())
+
+export const viewport: Viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 5,
+  viewportFit: 'cover',
+  themeColor: '#8B4513',
+}
 
 export default function RootLayout({
   children,
@@ -53,13 +69,14 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
-      <body>
+      <body className="antialiased">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <ToastProvider>
           <CartProvider>
             <Header />
-            <main className="min-h-screen">{children}</main>
-            <Footer />
+            <AppMain>{children}</AppMain>
+            <AppFooter />
+            <MobileBottomNav />
             <WhatsAppButton />
           </CartProvider>
         </ToastProvider>

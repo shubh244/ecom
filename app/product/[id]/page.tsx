@@ -5,12 +5,14 @@ import { apiClient } from '@/lib/api'
 import { Product } from '@/lib/types'
 import { FiShoppingCart, FiHeart, FiShare2 } from 'react-icons/fi'
 import { useCart } from '@/context/CartContext'
+import { useToast } from '@/context/ToastContext'
 import Link from 'next/link'
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
   const { addToCart } = useCart()
+  const { showToast } = useToast()
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -60,29 +62,29 @@ export default function ProductPage({ params }: { params: { id: string } }) {
     : 0
 
   const handleAddToCart = () => {
-    if (product.in_stock) {
-      addToCart({
-        id: product.id.toString(),
-        name: product.name,
-        price: product.price,
-        originalPrice: product.original_price,
-        image: product.image || '/placeholder.jpg',
-        category: product.category?.name || '',
-        subcategory: product.subcategory,
-        rating: product.rating,
-        reviews: product.reviews,
-        inStock: product.in_stock,
-        description: product.description,
-      })
-    }
+    if (!product?.in_stock) return
+    addToCart({
+      id: product.id.toString(),
+      name: product.name,
+      price: product.price,
+      originalPrice: product.original_price,
+      image: product.image || '/placeholder.jpg',
+      category: product.category?.name || '',
+      subcategory: product.subcategory,
+      rating: product.rating,
+      reviews: product.reviews,
+      inStock: product.in_stock,
+      description: product.description,
+    })
+    showToast('Added to cart', 'success')
   }
 
   return (
-    <div className="py-8">
-      <div className="container mx-auto px-4">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+    <div className="py-4 sm:py-8 pb-36 md:pb-8">
+      <div className="container mx-auto px-3 sm:px-4">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
           {/* Product Image */}
-          <div className="bg-gray-100 rounded-lg aspect-square flex items-center justify-center">
+          <div className="bg-gray-100 rounded-xl sm:rounded-lg aspect-square flex items-center justify-center overflow-hidden -mx-1 sm:mx-0">
             <div
               className="w-full h-full bg-cover bg-center rounded-lg"
               style={{
@@ -100,8 +102,10 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           </div>
 
           {/* Product Details */}
-          <div>
-            <h1 className="text-3xl font-bold mb-4">{product.name}</h1>
+          <div className="min-w-0">
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold mb-3 sm:mb-4 leading-snug">
+              {product.name}
+            </h1>
             
             {/* Rating */}
             <div className="flex items-center gap-2 mb-4">
@@ -116,12 +120,12 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             {/* Price */}
             <div className="mb-6">
               <div className="flex items-center gap-4 mb-2">
-                <span className="text-4xl font-bold text-primary">
+                <span className="text-3xl sm:text-4xl font-bold text-primary">
                   ₹{product.price.toLocaleString()}
                 </span>
                 {product.original_price && (
                   <>
-                    <span className="text-2xl text-gray-400 line-through">
+                    <span className="text-lg sm:text-2xl text-gray-400 line-through">
                       ₹{product.original_price.toLocaleString()}
                     </span>
                     {discount > 0 && (
@@ -154,31 +158,40 @@ export default function ProductPage({ params }: { params: { id: string } }) {
               </p>
             </div>
 
-            {/* Actions */}
-            <div className="flex gap-4 mb-6">
+            {/* Actions — desktop / tablet */}
+            <div className="hidden md:flex gap-3 mb-6">
               <button
+                type="button"
                 disabled={!product.in_stock}
                 onClick={handleAddToCart}
-                className={`flex-1 py-3 rounded-lg font-semibold transition flex items-center justify-center gap-2 ${
+                className={`flex-1 min-h-[48px] py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 touch-manipulation ${
                   product.in_stock
-                    ? 'bg-primary hover:bg-secondary text-white'
+                    ? 'bg-primary hover:bg-secondary text-white active:scale-[0.99]'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
                 <FiShoppingCart />
-                Add to Cart
+                Add to cart
               </button>
-              <button className="px-6 py-3 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition">
+              <button
+                type="button"
+                className="min-h-[48px] min-w-[48px] border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-white transition flex items-center justify-center touch-manipulation"
+                aria-label="Wishlist"
+              >
                 <FiHeart />
               </button>
-              <button className="px-6 py-3 border-2 border-primary text-primary rounded-lg hover:bg-primary hover:text-white transition">
+              <button
+                type="button"
+                className="min-h-[48px] min-w-[48px] border-2 border-primary text-primary rounded-xl hover:bg-primary hover:text-white transition flex items-center justify-center touch-manipulation"
+                aria-label="Share"
+              >
                 <FiShare2 />
               </button>
             </div>
 
             {/* Features */}
-            <div className="bg-gray-50 p-6 rounded-lg">
-              <h3 className="font-semibold mb-4">Key Features</h3>
+            <div className="bg-gray-50 p-4 sm:p-6 rounded-xl sm:rounded-lg">
+              <h3 className="font-semibold mb-3 sm:mb-4">Key features</h3>
               <ul className="space-y-2 text-gray-600">
                 <li>✓ Premium Quality Materials</li>
                 <li>✓ Free Shipping on orders over ₹20,000</li>
@@ -188,6 +201,30 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             </div>
           </div>
         </div>
+      </div>
+
+      {/* Mobile sticky bar — above bottom tab bar */}
+      <div
+        className="fixed left-0 right-0 z-[38] md:hidden border-t border-gray-200 bg-white/95 backdrop-blur-md shadow-[0_-4px_24px_rgba(0,0,0,0.06)] product-sticky-cta px-3 py-3 flex items-center gap-3"
+        style={{ paddingBottom: 'max(0.75rem, env(safe-area-inset-bottom))' }}
+      >
+        <div className="min-w-0 flex-1">
+          <p className="text-[10px] uppercase tracking-wide text-gray-500 font-semibold">Price</p>
+          <p className="text-lg font-bold text-primary truncate">₹{product.price.toLocaleString()}</p>
+        </div>
+        <button
+          type="button"
+          disabled={!product.in_stock}
+          onClick={handleAddToCart}
+          className={`shrink-0 min-h-[48px] px-5 rounded-xl font-semibold flex items-center justify-center gap-2 touch-manipulation ${
+            product.in_stock
+              ? 'bg-primary text-white active:scale-[0.98]'
+              : 'bg-gray-200 text-gray-500 cursor-not-allowed'
+          }`}
+        >
+          <FiShoppingCart className="text-lg" />
+          {product.in_stock ? 'Add to cart' : 'Out of stock'}
+        </button>
       </div>
     </div>
   )

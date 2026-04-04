@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiMenu, FiX, FiShoppingCart, FiUser, FiHeart, FiSearch } from 'react-icons/fi'
 import { categories } from '@/lib/data'
@@ -54,10 +54,18 @@ export default function Header() {
     }
   }
 
+  useEffect(() => {
+    const onOpenCart = () => setIsCartOpen(true)
+    window.addEventListener('open-cart', onOpenCart)
+    return () => window.removeEventListener('open-cart', onOpenCart)
+  }, [])
+
   return (
-    <header className="bg-white shadow-md sticky top-0 z-50">
-      {/* Top Bar */}
-      <div className="bg-gray-800 text-white py-2">
+    <header
+      className="bg-white shadow-md sticky top-0 z-50 supports-[padding:max(0px)]:pt-[max(0px,env(safe-area-inset-top))]"
+    >
+      {/* Top Bar — compact on phones (bottom nav covers primary actions) */}
+      <div className="hidden sm:block bg-gray-800 text-white py-2">
         <div className="container mx-auto px-4 flex justify-between items-center text-sm">
           <div className="flex items-center gap-4">
             <span>INR</span>
@@ -71,23 +79,27 @@ export default function Header() {
       </div>
 
       {/* Main Header */}
-      <div className="container mx-auto px-4 py-4">
-        <div className="flex items-center justify-between">
+      <div className="container mx-auto px-3 sm:px-4 py-2.5 md:py-4">
+        <div className="flex items-center justify-between gap-2">
           {/* Logo */}
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-2 sm:gap-4 min-w-0">
             <button
-              className="lg:hidden text-2xl"
+              type="button"
+              className="lg:hidden min-h-[44px] min-w-[44px] flex items-center justify-center text-2xl rounded-xl active:bg-gray-100 touch-manipulation"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? 'Close menu' : 'Open menu'}
             >
               {isMenuOpen ? <FiX /> : <FiMenu />}
             </button>
-            <a href="/" className="flex items-center gap-3">
-              <img 
-                src="https://shreejeeblessingwood.in/sjbw-logo.png" 
+            <a href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
+              <img
+                src="https://shreejeeblessingwood.in/sjbw-logo.png"
                 alt={`${SITE_NAME} logo`}
-                className="h-12 w-auto"
+                className="h-9 w-auto sm:h-12 shrink-0"
               />
-              <span className="text-2xl font-bold text-primary hidden sm:block">{SITE_NAME}</span>
+              <span className="text-lg sm:text-2xl font-bold text-primary hidden sm:block truncate max-w-[10rem] md:max-w-none">
+                {SITE_NAME}
+              </span>
             </a>
           </div>
 
@@ -112,51 +124,63 @@ export default function Header() {
           </div>
 
           {/* Right Icons */}
-          <div className="flex items-center gap-4">
-            <button className="relative p-2 hover:text-primary">
+          <div className="flex items-center gap-0.5 sm:gap-2 shrink-0">
+            <button
+              type="button"
+              className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:text-primary active:bg-gray-50 touch-manipulation hidden sm:flex"
+              aria-label="Wishlist"
+            >
               <FiHeart className="text-xl" />
             </button>
-            <button 
+            <button
+              type="button"
               onClick={() => setIsCartOpen(true)}
-              className="relative p-2 hover:text-primary"
+              className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:text-primary active:bg-gray-50 touch-manipulation"
+              aria-label={`Shopping cart${getTotalItems() > 0 ? `, ${getTotalItems()} items` : ''}`}
             >
               <FiShoppingCart className="text-xl" />
               {getTotalItems() > 0 && (
-                <span className="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center">
-                  {getTotalItems()}
+                <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[1.125rem] h-[1.125rem] px-0.5 flex items-center justify-center">
+                  {getTotalItems() > 9 ? '9+' : getTotalItems()}
                 </span>
               )}
             </button>
-            <button className="p-2 hover:text-primary">
+            <button
+              type="button"
+              className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:text-primary active:bg-gray-50 touch-manipulation hidden sm:flex"
+              aria-label="Account"
+            >
               <FiUser className="text-xl" />
             </button>
           </div>
         </div>
 
-        {/* Mobile Search */}
-        <div className="md:hidden mt-4">
+        {/* Mobile Search — optional quick search; full search also in bottom bar */}
+        <div className="md:hidden mt-3">
           <div className="relative">
             <input
-              type="text"
-              placeholder="Search for products..."
+              type="search"
+              placeholder="Quick search…"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               onKeyDown={handleSearchKeyDown}
-              className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary"
+              className="w-full min-h-[44px] px-4 py-2.5 pr-12 border border-gray-200 rounded-xl text-base focus:outline-none focus:ring-2 focus:ring-primary"
+              enterKeyHint="search"
             />
             <button
+              type="button"
               onClick={handleSearch}
-              className="absolute right-2 top-2 text-gray-400"
+              className="absolute right-1 top-1/2 -translate-y-1/2 min-h-[40px] min-w-[40px] flex items-center justify-center rounded-lg text-primary"
               aria-label="Search"
             >
-              <FiSearch />
+              <FiSearch className="text-lg" />
             </button>
           </div>
         </div>
       </div>
 
-      {/* Navigation */}
-      <nav className="bg-gray-100 border-t">
+      {/* Navigation — desktop / large tablet only (mobile uses bottom app bar) */}
+      <nav className="hidden lg:block bg-gray-100 border-t">
         <div className="container mx-auto px-4">
           <div className="flex items-center">
             <div className="relative">
@@ -222,23 +246,39 @@ export default function Header() {
 
       {/* Mobile Menu */}
       {isMenuOpen && (
-        <div className="lg:hidden bg-white border-t">
-          <div className="container mx-auto px-4 py-4 space-y-2">
-            <a href="/" className="block py-2 hover:text-primary">Home</a>
-            <a href="/office" className="block py-2 hover:text-primary">Office</a>
-            <a href="/outdoor" className="block py-2 hover:text-primary">Outdoor</a>
-            <a href="/restaurant-hotel" className="block py-2 hover:text-primary">Restaurant/Hotel</a>
-            <a href="/banquet" className="block py-2 hover:text-primary">Banquet</a>
-            <a href="/school" className="block py-2 hover:text-primary">School</a>
-            <a href="/hospital" className="block py-2 hover:text-primary">Hospital</a>
-            <a href="/customize" className="block py-2 hover:text-primary">Customize</a>
+        <div className="lg:hidden bg-white border-t max-h-[min(70dvh,28rem)] overflow-y-auto overscroll-contain">
+          <div className="container mx-auto px-4 py-2">
+            <a href="/" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Home
+            </a>
+            <a href="/office" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Office
+            </a>
+            <a href="/outdoor" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Outdoor
+            </a>
+            <a href="/restaurant-hotel" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Restaurant/Hotel
+            </a>
+            <a href="/banquet" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Banquet
+            </a>
+            <a href="/school" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              School
+            </a>
+            <a href="/hospital" className="block min-h-[48px] flex items-center py-2 text-base font-medium border-b border-gray-100 active:bg-gray-50 rounded-lg px-1">
+              Hospital
+            </a>
+            <a href="/customize" className="block min-h-[48px] flex items-center py-2 text-base font-medium active:bg-gray-50 rounded-lg px-1">
+              Customize
+            </a>
           </div>
         </div>
       )}
 
       {/* Support Bar */}
-      <div className="bg-primary text-white py-2">
-        <div className="container mx-auto px-4 flex items-center justify-center gap-4 flex-wrap">
+      <div className="bg-primary text-white py-1.5 sm:py-2">
+        <div className="container mx-auto px-3 sm:px-4 flex items-center justify-center gap-2 sm:gap-4 flex-wrap text-xs sm:text-sm">
           <span className="font-semibold">Support 24/7</span>
           <span>|</span>
           <a href="tel:8467082350" className="hover:text-yellow-400">8467082350</a>

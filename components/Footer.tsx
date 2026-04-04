@@ -1,13 +1,17 @@
+'use client'
+
 import { FiTruck, FiRefreshCw, FiShield, FiHeadphones, FiGift } from 'react-icons/fi'
 import { SITE_NAME } from '@/lib/site'
 
-export default function Footer() {
+export default function Footer({ edgeToEdge = false }: { edgeToEdge?: boolean }) {
   return (
-    <footer className="bg-gray-900 text-white">
+    <footer
+      className={`bg-gray-900 text-white ${edgeToEdge ? '' : 'app-footer-mobile-pad'}`}
+    >
       {/* Features Section */}
-      <div className="bg-gray-800 py-8">
+      <div className="bg-gray-800 py-6 sm:py-8">
         <div className="container mx-auto px-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 sm:gap-6">
             <div className="flex items-center gap-3">
               <FiTruck className="text-3xl text-yellow-400" />
               <div>

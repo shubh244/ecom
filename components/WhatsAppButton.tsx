@@ -1,11 +1,14 @@
 'use client'
 
 import { useState } from 'react'
+import { usePathname } from 'next/navigation'
 import { FiMessageCircle, FiX } from 'react-icons/fi'
 import { SITE_NAME } from '@/lib/site'
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false)
+  const pathname = usePathname()
+  const hidden = pathname?.startsWith('/admin') || pathname?.startsWith('/checkout')
   
   // Primary WhatsApp number (you can make this configurable)
   const whatsappNumber = '8467082350'
@@ -13,12 +16,15 @@ export default function WhatsAppButton() {
 
   const whatsappUrl = `https://wa.me/91${whatsappNumber}?text=${encodeURIComponent(message)}`
 
+  if (hidden) return null
+
   return (
     <>
       {/* WhatsApp Button */}
       <button
+        type="button"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 bg-green-500 hover:bg-green-600 text-white rounded-full p-4 shadow-2xl transition-all duration-300 hover:scale-110 group"
+        className="fixed right-4 sm:right-6 z-[55] bg-green-500 hover:bg-green-600 active:scale-95 text-white rounded-full p-3.5 sm:p-4 shadow-2xl transition-transform duration-200 whatsapp-fab-mobile touch-manipulation min-h-[52px] min-w-[52px] flex items-center justify-center"
         aria-label="WhatsApp Chat"
       >
         <FiMessageCircle className="text-3xl" />
@@ -29,8 +35,8 @@ export default function WhatsAppButton() {
 
       {/* WhatsApp Chat Popup */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 animate-slide-up">
-          <div className="bg-green-500 text-white p-4 rounded-t-lg flex items-center justify-between">
+        <div className="fixed right-4 sm:right-6 z-[55] w-[min(100vw-2rem,20rem)] whatsapp-popup-mobile rounded-2xl bg-white shadow-2xl border border-gray-200 animate-slide-up overflow-hidden max-h-[min(70dvh,28rem)] flex flex-col">
+          <div className="bg-green-500 text-white p-4 flex items-center justify-between shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center">
                 <span className="text-2xl">💬</span>
@@ -48,7 +54,7 @@ export default function WhatsAppButton() {
             </button>
           </div>
           
-          <div className="p-4 bg-gray-50">
+          <div className="p-4 bg-gray-50 overflow-y-auto">
             <p className="text-sm text-gray-700 mb-4">
               Hi! 👋 How can we help you today?
             </p>
@@ -82,7 +88,7 @@ export default function WhatsAppButton() {
             </div>
           </div>
           
-          <div className="p-3 bg-white border-t border-gray-200 rounded-b-lg">
+          <div className="p-3 bg-white border-t border-gray-200 shrink-0">
             <div className="flex items-center gap-2 text-sm text-gray-600">
               <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></span>
               <span>Online now</span>
