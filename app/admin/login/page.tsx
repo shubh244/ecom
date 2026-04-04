@@ -48,7 +48,7 @@ export default function AdminLogin() {
       <div className="bg-white p-8 rounded-lg shadow-2xl w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-bold text-primary mb-2">Admin Login</h1>
-          <p className="text-gray-600">Wood State Furniture Admin Panel</p>
+          <p className="text-gray-600">Shreejee Blessings Wood — Admin</p>
         </div>
 
         {error && (

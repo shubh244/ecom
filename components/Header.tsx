@@ -4,6 +4,7 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiMenu, FiX, FiShoppingCart, FiUser, FiHeart, FiSearch } from 'react-icons/fi'
 import { categories } from '@/lib/data'
+import { SITE_NAME } from '@/lib/site'
 import { useCart } from '@/context/CartContext'
 import CartModal from './CartModal'
 
@@ -83,12 +84,10 @@ export default function Header() {
             <a href="/" className="flex items-center gap-3">
               <img 
                 src="https://shreejeeblessingwood.in/sjbw-logo.png" 
-                alt="Shreejee Blessing Wood Logo" 
+                alt={`${SITE_NAME} logo`}
                 className="h-12 w-auto"
               />
-              <span className="text-2xl font-bold text-primary hidden sm:block">
-                Shreejee Blessing Wood
-              </span>
+              <span className="text-2xl font-bold text-primary hidden sm:block">{SITE_NAME}</span>
             </a>
           </div>
 

@@ -16,7 +16,7 @@ class ProductSeeder extends Seeder
         $products = [
             // Beds
             [
-                'name' => 'Wood State Daffodil King Bed with Box Storage (Walnut)',
+                'name' => 'Shreejee Blessings Wood Daffodil King Bed with Box Storage (Walnut)',
                 'price' => 21990,
                 'original_price' => 69000,
                 'category' => 'beds',
@@ -31,7 +31,7 @@ class ProductSeeder extends Seeder
                 'description' => 'Premium king size bed with spacious box storage. Made from high-quality walnut wood with elegant design.',
             ],
             [
-                'name' => 'Wood State King Bed without Storage (Walnut)',
+                'name' => 'Shreejee Blessings Wood King Bed without Storage (Walnut)',
                 'price' => 15500,
                 'original_price' => 50000,
                 'category' => 'beds',
@@ -46,7 +46,7 @@ class ProductSeeder extends Seeder
                 'description' => 'Elegant king size bed without storage. Perfect for modern bedrooms.',
             ],
             [
-                'name' => 'Wood State Queen Bed with Storage (Oak)',
+                'name' => 'Shreejee Blessings Wood Queen Bed with Storage (Oak)',
                 'price' => 18990,
                 'original_price' => 45000,
                 'category' => 'beds',

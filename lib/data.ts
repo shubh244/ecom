@@ -79,7 +79,7 @@ export const products: Product[] = [
   // Beds
   {
     id: '1',
-    name: 'Wood State Daffodil King Bed with Box Storage (Walnut)',
+    name: 'Shreejee Blessings Wood Daffodil King Bed with Box Storage (Walnut)',
     price: 21990,
     originalPrice: 69000,
     image: '/products/bed1.jpg',
@@ -91,7 +91,7 @@ export const products: Product[] = [
   },
   {
     id: '2',
-    name: 'Wood State King Bed without Storage (Walnut)',
+    name: 'Shreejee Blessings Wood King Bed without Storage (Walnut)',
     price: 15500,
     originalPrice: 50000,
     image: '/products/bed2.jpg',
@@ -103,7 +103,7 @@ export const products: Product[] = [
   },
   {
     id: '3',
-    name: 'Wood State King Bed with Storage (Walnut)',
+    name: 'Shreejee Blessings Wood King Bed with Storage (Walnut)',
     price: 18490,
     originalPrice: 30500,
     image: '/products/bed3.jpg',
@@ -115,7 +115,7 @@ export const products: Product[] = [
   },
   {
     id: '4',
-    name: 'Wood State King Bed With Storage (Wenge & Sonama Oak)',
+    name: 'Shreejee Blessings Wood King Bed With Storage (Wenge & Sonama Oak)',
     price: 19490,
     originalPrice: 32500,
     image: '/products/bed4.jpg',
@@ -127,7 +127,7 @@ export const products: Product[] = [
   },
   {
     id: '5',
-    name: 'Wood State King Bed (Walnut)',
+    name: 'Shreejee Blessings Wood King Bed (Walnut)',
     price: 13990,
     originalPrice: 22500,
     image: '/products/bed5.jpg',
@@ -139,7 +139,7 @@ export const products: Product[] = [
   },
   {
     id: '6',
-    name: 'Wood State King Bed With Storage (Wenge)',
+    name: 'Shreejee Blessings Wood King Bed With Storage (Wenge)',
     price: 23990,
     originalPrice: 37000,
     image: '/products/bed6.jpg',

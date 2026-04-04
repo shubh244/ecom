@@ -6,9 +6,10 @@ import Link from 'next/link'
 
 const slides = [
   {
-    title: 'Premium Wooden Furniture Collection',
-    subtitle: 'Transform Your Living Space with Elegance',
-    description: 'Discover handcrafted furniture that combines timeless beauty with modern functionality',
+    title: 'Premium Wooden Furniture — Delhi & Pan India',
+    subtitle: 'Shreejee Blessings Wood',
+    description:
+      'Shop online or visit our Delhi NCR showrooms. Fast, reliable delivery across India — beds, sofas, dining & more.',
     image: 'https://images.unsplash.com/photo-1586023492125-27b2c045efd7?w=1920&q=80',
     cta: 'Shop Now',
     ctaLink: '/shop',

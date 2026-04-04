@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { FiMessageCircle, FiX } from 'react-icons/fi'
+import { SITE_NAME } from '@/lib/site'
 
 export default function WhatsAppButton() {
   const [isOpen, setIsOpen] = useState(false)
@@ -35,7 +36,7 @@ export default function WhatsAppButton() {
                 <span className="text-2xl">💬</span>
               </div>
               <div>
-                <h3 className="font-semibold">Shreejee Blessing Wood</h3>
+                <h3 className="font-semibold">{SITE_NAME}</h3>
                 <p className="text-xs text-green-100">Typically replies within minutes</p>
               </div>
             </div>

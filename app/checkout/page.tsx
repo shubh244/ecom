@@ -9,6 +9,7 @@ import { useToast } from '@/context/ToastContext'
 import { FiUser, FiMail, FiPhone, FiMapPin } from 'react-icons/fi'
 import Link from 'next/link'
 import { apiClient } from '@/lib/api'
+import { SITE_NAME } from '@/lib/site'
 
 const UpiQrScanner = dynamic(() => import('@/components/UpiQrScanner'), { ssr: false })
 
@@ -132,7 +133,7 @@ export default function CheckoutPage() {
         amount: checkout.amount,
         currency: checkout.currency,
         order_id: checkout.order_id,
-        name: 'Woodstate Furniture',
+        name: SITE_NAME,
         description: `Order ${checkout.order_number}`,
         prefill: checkout.prefill,
         handler(response) {

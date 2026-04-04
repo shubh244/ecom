@@ -1,4 +1,5 @@
 import { FiTruck, FiRefreshCw, FiShield, FiHeadphones, FiGift } from 'react-icons/fi'
+import { SITE_NAME } from '@/lib/site'
 
 export default function Footer() {
   return (
@@ -51,9 +52,9 @@ export default function Footer() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
           {/* About */}
           <div>
-            <h3 className="text-xl font-bold mb-4">Shreejee Blessing Wood – Buy Wooden Furniture</h3>
+            <h3 className="text-xl font-bold mb-4">{SITE_NAME} — Wooden Furniture Delhi & Pan India</h3>
             <p className="text-gray-400 mb-4">
-              Shreejee Blessing Wood has been leading the front of providing premium quality and tailor-made furniture and furnishing solutions, leading India's furniture segment as the fastest growing furniture brand.
+              {SITE_NAME} offers premium solid wood and tailor-made furniture with showrooms in Delhi NCR and reliable delivery across India — beds, sofas, dining sets, and complete home solutions.
             </p>
             <div className="space-y-2 text-gray-400">
               <p className="flex items-center gap-2">
@@ -120,7 +121,7 @@ export default function Footer() {
         <div className="container mx-auto px-4 py-6">
           <div className="flex flex-col md:flex-row justify-between items-center gap-4">
             <p className="text-gray-400 text-sm">
-              ©2025 Shreejee Blessing Wood. All Rights Reserved.
+              ©{new Date().getFullYear()} {SITE_NAME}. All Rights Reserved.
             </p>
             <div className="flex gap-4">
               <a href="#" className="text-gray-400 hover:text-yellow-400">Facebook</a>

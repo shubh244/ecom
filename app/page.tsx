@@ -1,67 +1,31 @@
-'use client'
+import type { Metadata } from 'next'
+import HomeClient from './HomeClient'
+import { SITE_NAME, getSiteUrl, siteSeo } from '@/lib/site'
 
-import { useEffect, useState } from 'react'
-import Hero from '@/components/Hero'
-import PromoBanner from '@/components/PromoBanner'
-import CategoryBanner from '@/components/CategoryBanner'
-import StatsBanner from '@/components/StatsBanner'
-import CategorySection from '@/components/CategorySection'
-import FeaturedProducts from '@/components/FeaturedProducts'
-import TopPicks from '@/components/TopPicks'
-import BedsSection from '@/components/BedsSection'
-import SofaSection from '@/components/SofaSection'
-import HotOffers from '@/components/HotOffers'
-import { apiClient } from '@/lib/api'
-import { Category, Product } from '@/lib/types'
+const siteUrl = getSiteUrl()
 
-export default function Home() {
-  const [categories, setCategories] = useState<Category[]>([])
-  const [featuredProducts, setFeaturedProducts] = useState<Product[]>([])
-  const [loading, setLoading] = useState(true)
+export const metadata: Metadata = {
+  title: { absolute: siteSeo.homeTitle },
+  description: siteSeo.homeDescription,
+  keywords: [...siteSeo.keywords],
+  alternates: { canonical: '/' },
+  openGraph: {
+    type: 'website',
+    locale: 'en_IN',
+    url: siteUrl,
+    siteName: SITE_NAME,
+    title: siteSeo.homeTitle,
+    description: siteSeo.homeDescription,
+    images: [{ url: siteSeo.ogImage, width: 512, height: 512, alt: SITE_NAME }],
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: siteSeo.homeTitle,
+    description: siteSeo.homeDescription,
+    images: [siteSeo.ogImage],
+  },
+}
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [categoriesData, featuredData] = await Promise.all([
-          apiClient.getCategories(),
-          apiClient.getFeaturedProducts(),
-        ])
-        setCategories(categoriesData)
-        setFeaturedProducts(featuredData)
-      } catch (error) {
-        console.error('Error fetching data:', error)
-        // Fallback to static data if API fails
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchData()
-  }, [])
-
-  if (loading) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-4 text-gray-600">Loading...</p>
-        </div>
-      </div>
-    )
-  }
-
-  return (
-    <div className="overflow-x-hidden">
-      <Hero />
-      <PromoBanner />
-      <HotOffers />
-      <CategoryBanner />
-      <TopPicks categories={categories} />
-      <StatsBanner />
-      <BedsSection />
-      <SofaSection />
-      <CategorySection categories={categories} />
-      <FeaturedProducts products={featuredProducts} />
-    </div>
-  )
+export default function HomePage() {
+  return <HomeClient />
 }
