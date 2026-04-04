@@ -32,7 +32,7 @@ class DatabaseSeeder extends Seeder
 
         if ($bedCategory) {
             Product::create([
-                'name' => 'Wood State Daffodil King Bed with Box Storage (Walnut)',
+                'name' => 'Shreejee Blessings Wood Daffodil King Bed with Box Storage (Walnut)',
                 'price' => 21990,
                 'original_price' => 69000,
                 'category_id' => $bedCategory->id,
@@ -45,7 +45,7 @@ class DatabaseSeeder extends Seeder
             ]);
 
             Product::create([
-                'name' => 'Wood State King Bed without Storage (Walnut)',
+                'name' => 'Shreejee Blessings Wood King Bed without Storage (Walnut)',
                 'price' => 15500,
                 'original_price' => 50000,
                 'category_id' => $bedCategory->id,
