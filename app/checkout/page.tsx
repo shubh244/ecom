@@ -20,9 +20,23 @@ interface PlacedCheckout {
     order_number: string
     total_amount: string | number
   }
-  upi_pay_url: string
-  merchant_upi_vpa: string
+  razorpay_enabled: boolean
+  upi_pay_url?: string
+  merchant_upi_vpa?: string
   amount: string | number
+}
+
+function loadRazorpayScript(): Promise<boolean> {
+  if (typeof window === 'undefined') return Promise.resolve(false)
+  if (window.Razorpay) return Promise.resolve(true)
+  return new Promise((resolve) => {
+    const s = document.createElement('script')
+    s.src = 'https://checkout.razorpay.com/v1/checkout.js'
+    s.async = true
+    s.onload = () => resolve(true)
+    s.onerror = () => resolve(false)
+    document.body.appendChild(s)
+  })
 }
 
 export default function CheckoutPage() {
@@ -36,6 +50,7 @@ export default function CheckoutPage() {
   const [utr, setUtr] = useState('')
   const [screenshotUploading, setScreenshotUploading] = useState(false)
   const [screenshotUrls, setScreenshotUrls] = useState<string[]>([])
+  const [razorpayLoading, setRazorpayLoading] = useState(false)
 
   const [formData, setFormData] = useState({
     customer_name: '',
@@ -70,14 +85,21 @@ export default function CheckoutPage() {
         return
       }
 
+      const razorpayEnabled = !!data.razorpay_enabled
       setPlaced({
         order: data.order,
+        razorpay_enabled: razorpayEnabled,
         upi_pay_url: data.upi_pay_url,
         merchant_upi_vpa: data.merchant_upi_vpa,
         amount: data.order.total_amount ?? total,
       })
       setStep('payment')
-      showToast('Order created. Complete UPI payment to finish.', 'success')
+      showToast(
+        razorpayEnabled
+          ? 'Order created. Pay securely with Razorpay (UPI, cards, netbanking).'
+          : 'Order created. Complete UPI payment to finish.',
+        'success'
+      )
     } catch (error) {
       console.error('Error placing order:', error)
       showToast('Error placing order. Please try again.', 'error')
@@ -89,6 +111,71 @@ export default function CheckoutPage() {
   const openUpi = () => {
     if (!placed?.upi_pay_url) return
     window.location.href = placed.upi_pay_url
+  }
+
+  const payWithRazorpay = async () => {
+    if (!placed?.razorpay_enabled) return
+    setRazorpayLoading(true)
+    try {
+      const scriptOk = await loadRazorpayScript()
+      if (!scriptOk) {
+        showToast('Could not load Razorpay. Check your connection and try again.', 'error')
+        setRazorpayLoading(false)
+        return
+      }
+
+      const checkout = await apiClient.createRazorpayCheckoutOrder(placed.order.id)
+      const orderIdForVerify = placed.order.id
+
+      const rzp = new window.Razorpay({
+        key: checkout.key_id,
+        amount: checkout.amount,
+        currency: checkout.currency,
+        order_id: checkout.order_id,
+        name: 'Woodstate Furniture',
+        description: `Order ${checkout.order_number}`,
+        prefill: checkout.prefill,
+        handler(response) {
+          void (async () => {
+            try {
+              await apiClient.verifyRazorpayPayment(orderIdForVerify, {
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              })
+              showToast('Payment successful!', 'success')
+              clearCart()
+              router.push('/order-success')
+            } catch (err) {
+              console.error(err)
+              showToast(
+                err instanceof Error
+                  ? err.message
+                  : 'Verification failed. Contact support with your order number.',
+                'error'
+              )
+            }
+          })()
+        },
+        modal: {
+          ondismiss: () => setRazorpayLoading(false),
+        },
+        theme: { color: '#8B4513' },
+      })
+
+      rzp.on('payment.failed', (res) => {
+        const desc = res?.error?.description
+        showToast(desc || 'Payment failed. You can try again.', 'error')
+        setRazorpayLoading(false)
+      })
+
+      rzp.open()
+      setRazorpayLoading(false)
+    } catch (e) {
+      console.error(e)
+      showToast(e instanceof Error ? e.message : 'Could not start payment.', 'error')
+      setRazorpayLoading(false)
+    }
   }
 
   const reportPayment = async (status: 'success' | 'failed') => {
@@ -147,10 +234,44 @@ export default function CheckoutPage() {
   }
 
   if (step === 'payment' && placed) {
+    const screenshotBlock = (
+      <div className="rounded-lg border border-dashed border-gray-300 p-4">
+        <h3 className="text-sm font-semibold text-gray-800 mb-2">Upload payment screenshot (optional)</h3>
+        <p className="text-xs text-gray-600 mb-3">
+          Saves proof against order #{placed.order.order_number} (order ID {placed.order.id}) for admin review.
+        </p>
+        <input
+          type="file"
+          accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
+          disabled={screenshotUploading}
+          onChange={handleScreenshotChange}
+          className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
+        />
+        {screenshotUploading && <p className="mt-2 text-xs text-gray-500">Uploading…</p>}
+        {screenshotUrls.length > 0 && (
+          <div className="mt-3 flex flex-wrap gap-2">
+            {screenshotUrls.map((u, i) => (
+              <a
+                key={`${u}-${i}`}
+                href={u}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-xs text-primary underline"
+              >
+                View upload {i + 1}
+              </a>
+            ))}
+          </div>
+        )}
+      </div>
+    )
+
     return (
       <div className="min-h-screen bg-gray-50 py-8">
         <div className="container mx-auto px-4 max-w-3xl">
-          <h1 className="text-3xl font-bold mb-2">Pay with UPI</h1>
+          <h1 className="text-3xl font-bold mb-2">
+            {placed.razorpay_enabled ? 'Complete payment' : 'Pay with UPI'}
+          </h1>
           <p className="text-gray-600 text-sm mb-6">
             Order <span className="font-mono font-semibold">{placed.order.order_number}</span>{' '}
             <span className="text-gray-400">(ID: {placed.order.id})</span> · Amount{' '}
@@ -158,98 +279,92 @@ export default function CheckoutPage() {
           </p>
 
           <div className="bg-white rounded-lg shadow-md p-6 space-y-6">
-            <p className="text-sm text-gray-600">
-              Pay to UPI ID: <span className="font-mono font-semibold">{placed.merchant_upi_vpa}</span>
-            </p>
-            <p className="text-xs text-gray-500">
-              Scan the QR below with PhonePe / Google Pay / Paytm, or use the app button. After paying,
-              upload a screenshot of the success screen so we can match it to your order. Final bank
-              confirmation still needs a payment gateway later.
-            </p>
-
-            <div className="grid gap-6 md:grid-cols-2">
-              <div className="flex flex-col items-center rounded-lg border border-gray-100 bg-gray-50 p-4">
-                <h3 className="text-sm font-semibold text-gray-800 mb-3">Scan to pay</h3>
-                <div className="rounded-lg bg-white p-3 shadow-sm">
-                  <QRCodeSVG value={placed.upi_pay_url} size={220} level="M" includeMargin />
-                </div>
-                <p className="mt-3 text-center text-xs text-gray-500">
-                  Open your UPI app and scan this code
+            {placed.razorpay_enabled ? (
+              <>
+                <p className="text-sm text-gray-600">
+                  Pay with <strong>Razorpay</strong> — same secure checkout flow as our main store (UPI, cards,
+                  netbanking, wallets). Your payment is verified automatically when it succeeds.
                 </p>
-              </div>
+                <button
+                  type="button"
+                  onClick={payWithRazorpay}
+                  disabled={razorpayLoading}
+                  className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+                >
+                  {razorpayLoading ? 'Preparing checkout…' : `Pay ₹${Number(placed.amount).toLocaleString()} with Razorpay`}
+                </button>
+                {screenshotBlock}
+              </>
+            ) : (
+              <>
+                <p className="text-sm text-gray-600">
+                  Pay to UPI ID:{' '}
+                  <span className="font-mono font-semibold">{placed.merchant_upi_vpa}</span>
+                </p>
+                <p className="text-xs text-gray-500">
+                  Scan the QR below with PhonePe / Google Pay / Paytm, or use the app button. After paying,
+                  upload a screenshot of the success screen so we can match it to your order.
+                </p>
 
-              <UpiQrScanner />
-            </div>
+                <div className="grid gap-6 md:grid-cols-2">
+                  <div className="flex flex-col items-center rounded-lg border border-gray-100 bg-gray-50 p-4">
+                    <h3 className="text-sm font-semibold text-gray-800 mb-3">Scan to pay</h3>
+                    <div className="rounded-lg bg-white p-3 shadow-sm">
+                      {placed.upi_pay_url ? (
+                        <QRCodeSVG value={placed.upi_pay_url} size={220} level="M" includeMargin />
+                      ) : null}
+                    </div>
+                    <p className="mt-3 text-center text-xs text-gray-500">
+                      Open your UPI app and scan this code
+                    </p>
+                  </div>
 
-            <button
-              type="button"
-              onClick={openUpi}
-              className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold"
-            >
-              Open UPI app to pay
-            </button>
-
-            <div className="rounded-lg border border-dashed border-gray-300 p-4">
-              <h3 className="text-sm font-semibold text-gray-800 mb-2">Upload payment screenshot</h3>
-              <p className="text-xs text-gray-600 mb-3">
-                Saves proof against order #{placed.order.order_number} (order ID {placed.order.id}) for admin review.
-              </p>
-              <input
-                type="file"
-                accept="image/jpeg,image/png,image/jpg,image/gif,image/webp"
-                disabled={screenshotUploading}
-                onChange={handleScreenshotChange}
-                className="block w-full text-sm text-gray-600 file:mr-3 file:rounded-lg file:border-0 file:bg-primary file:px-4 file:py-2 file:text-sm file:font-semibold file:text-white"
-              />
-              {screenshotUploading && (
-                <p className="mt-2 text-xs text-gray-500">Uploading…</p>
-              )}
-              {screenshotUrls.length > 0 && (
-                <div className="mt-3 flex flex-wrap gap-2">
-                  {screenshotUrls.map((u, i) => (
-                    <a
-                      key={`${u}-${i}`}
-                      href={u}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="text-xs text-primary underline"
-                    >
-                      View upload {i + 1}
-                    </a>
-                  ))}
+                  <UpiQrScanner />
                 </div>
-              )}
-            </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">UTR / reference (optional)</label>
-              <input
-                type="text"
-                value={utr}
-                onChange={(e) => setUtr(e.target.value)}
-                className="w-full px-4 py-2 border border-gray-300 rounded-lg"
-                placeholder="12-digit UTR if available"
-              />
-            </div>
+                <button
+                  type="button"
+                  onClick={openUpi}
+                  className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold"
+                >
+                  Open UPI app to pay
+                </button>
 
-            <div className="flex flex-col sm:flex-row gap-3 pt-2">
-              <button
-                type="button"
-                disabled={paymentLoading}
-                onClick={() => reportPayment('success')}
-                className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
-              >
-                I have paid successfully
-              </button>
-              <button
-                type="button"
-                disabled={paymentLoading}
-                onClick={() => reportPayment('failed')}
-                className="flex-1 border border-red-300 text-red-700 py-3 rounded-lg font-semibold hover:bg-red-50 disabled:opacity-50"
-              >
-                Payment failed
-              </button>
-            </div>
+                {screenshotBlock}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1">
+                    UTR / reference (optional)
+                  </label>
+                  <input
+                    type="text"
+                    value={utr}
+                    onChange={(e) => setUtr(e.target.value)}
+                    className="w-full px-4 py-2 border border-gray-300 rounded-lg"
+                    placeholder="12-digit UTR if available"
+                  />
+                </div>
+
+                <div className="flex flex-col sm:flex-row gap-3 pt-2">
+                  <button
+                    type="button"
+                    disabled={paymentLoading}
+                    onClick={() => reportPayment('success')}
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white py-3 rounded-lg font-semibold disabled:opacity-50"
+                  >
+                    I have paid successfully
+                  </button>
+                  <button
+                    type="button"
+                    disabled={paymentLoading}
+                    onClick={() => reportPayment('failed')}
+                    className="flex-1 border border-red-300 text-red-700 py-3 rounded-lg font-semibold hover:bg-red-50 disabled:opacity-50"
+                  >
+                    Payment failed
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       </div>
@@ -341,7 +456,7 @@ export default function CheckoutPage() {
                   disabled={loading}
                   className="w-full bg-primary hover:bg-secondary text-white py-3 rounded-lg font-semibold text-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
                 >
-                  {loading ? 'Placing Order...' : 'Place order & pay with UPI'}
+                  {loading ? 'Placing Order...' : 'Place order & pay'}
                 </button>
               </form>
             </div>

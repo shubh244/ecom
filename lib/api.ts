@@ -32,7 +32,16 @@ class ApiClient {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        throw new Error(`API Error: ${response.statusText}`)
+        let msg = response.statusText
+        try {
+          const errBody = await response.json()
+          if (typeof errBody.message === 'string' && errBody.message) {
+            msg = errBody.message
+          }
+        } catch {
+          /* ignore */
+        }
+        throw new Error(msg)
       }
 
       const data: ApiResponse<T> = await response.json()
@@ -235,6 +244,34 @@ class ApiClient {
     body: { status: 'success' | 'failed'; utr?: string; note?: string }
   ) {
     return this.request<any>(`/orders/${orderId}/payment/report`, {
+      method: 'POST',
+      body: JSON.stringify(body),
+    })
+  }
+
+  async createRazorpayCheckoutOrder(orderId: number) {
+    return this.request<{
+      key_id: string
+      amount: number
+      currency: string
+      order_id: string
+      order_number: string
+      prefill: { name: string; email: string; contact: string }
+    }>(`/orders/${orderId}/payment/razorpay/order`, {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+  }
+
+  async verifyRazorpayPayment(
+    orderId: number,
+    body: {
+      razorpay_order_id: string
+      razorpay_payment_id: string
+      razorpay_signature: string
+    }
+  ) {
+    return this.request<any>(`/orders/${orderId}/payment/razorpay/verify`, {
       method: 'POST',
       body: JSON.stringify(body),
     })

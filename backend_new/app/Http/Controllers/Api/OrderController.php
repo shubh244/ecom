@@ -75,6 +75,29 @@ class OrderController extends Controller
             ]);
         }
 
+        $razorpayEnabled = (bool) config('payment.razorpay_enabled');
+
+        if ($razorpayEnabled) {
+            $payment = OrderPayment::create([
+                'order_id' => $order->id,
+                'status' => 'pending',
+                'amount' => $totalAmount,
+                'method' => 'razorpay',
+                'currency' => 'INR',
+                'upi_pay_url' => null,
+            ]);
+
+            return response()->json([
+                'success' => true,
+                'message' => 'Order created successfully',
+                'data' => [
+                    'order' => $order->load('items.product'),
+                    'payment' => $payment,
+                    'razorpay_enabled' => true,
+                ],
+            ], 201);
+        }
+
         $upiVpa = (string) config('payment.upi_vpa');
         $upiName = (string) config('payment.upi_merchant_name');
         $amt = number_format((float) $totalAmount, 2, '.', '');
@@ -100,6 +123,7 @@ class OrderController extends Controller
             'data' => [
                 'order' => $order->load('items.product'),
                 'payment' => $payment,
+                'razorpay_enabled' => false,
                 'upi_pay_url' => $upiUrl,
                 'merchant_upi_vpa' => $upiVpa,
             ],

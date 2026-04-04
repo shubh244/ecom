@@ -14,6 +14,8 @@ class OrderPayment extends Model
         'amount',
         'currency',
         'upi_pay_url',
+        'razorpay_order_id',
+        'razorpay_payment_id',
         'utr_reference',
         'note',
     ];
