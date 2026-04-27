@@ -1,3 +1,30 @@
+## Railway + Supabase Deployment
+
+Use these environment variables in your Railway/Render backend service:
+
+- `DB_CONNECTION=pgsql`
+- `DB_URL=postgresql://postgres.<project-ref>:<supabase-db-password>@aws-0-<region>.pooler.supabase.com:5432/postgres?sslmode=require` (recommended on IPv4-only hosts like Render free tier)
+- `DATABASE_URL=<same as DB_URL>` (optional compatibility)
+- `DB_HOST=aws-0-<region>.pooler.supabase.com` (if not using `DB_URL`)
+- `DB_PORT=5432`
+- `DB_DATABASE=postgres`
+- `DB_USERNAME=postgres.<project-ref>`
+- `DB_PASSWORD=<supabase-db-password>`
+- `DB_SSLMODE=require`
+- `APP_ENV=production`
+- `APP_DEBUG=false`
+
+After setting variables, redeploy and run migrations:
+
+```bash
+php artisan migrate --force
+php artisan db:seed --force
+```
+
+This Docker image already includes `pdo_pgsql`, so it can connect to Supabase Postgres.
+
+---
+
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
 <p align="center">
