@@ -19,6 +19,22 @@ use App\Http\Controllers\Api\OrderPaymentController;
 |
 */
 
+// API health/info
+Route::get('/', function () {
+    return response()->json([
+        'success' => true,
+        'service' => 'ecom-backend',
+        'message' => 'API is running',
+    ]);
+});
+
+Route::get('/health', function () {
+    return response()->json([
+        'success' => true,
+        'status' => 'ok',
+    ]);
+});
+
 // Products
 Route::get('/products', [ProductController::class, 'index']);
 Route::get('/products/category/{category}', [ProductController::class, 'getByCategory']);
