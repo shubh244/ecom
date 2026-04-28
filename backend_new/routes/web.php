@@ -5,6 +5,14 @@ use Illuminate\Support\Facades\Route;
 Route::get('/', function () {
     $frontendUrl = rtrim((string) env('FRONTEND_URL', ''), '/');
 
+    // Fallback: use first allowed CORS origin as storefront URL.
+    if ($frontendUrl === '') {
+        $origins = array_values(array_filter(array_map('trim', explode(',', (string) env('CORS_ALLOWED_ORIGINS', '')))));
+        if (! empty($origins)) {
+            $frontendUrl = rtrim($origins[0], '/');
+        }
+    }
+
     if ($frontendUrl !== '') {
         return redirect()->away($frontendUrl);
     }
