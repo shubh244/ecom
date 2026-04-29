@@ -63,6 +63,9 @@ Route::get('/orders', [OrderController::class, 'index']);
 Route::get('/orders/{id}', [OrderController::class, 'show'])->whereNumber('id');
 Route::post('/orders/{id}/payment/razorpay/order', [OrderPaymentController::class, 'createRazorpayOrder'])->whereNumber('id');
 Route::post('/orders/{id}/payment/razorpay/verify', [OrderPaymentController::class, 'verifyRazorpayPayment'])->whereNumber('id');
+// Compatibility routes for standard Razorpay examples.
+Route::post('/create-order', [OrderPaymentController::class, 'createOrder']);
+Route::post('/verify-payment', [OrderPaymentController::class, 'verifyPayment']);
 Route::post('/orders/{id}/payment/report', [OrderPaymentController::class, 'report'])->whereNumber('id');
 Route::post('/orders/{id}/payment/screenshot', [OrderPaymentController::class, 'uploadScreenshot'])->whereNumber('id');
 

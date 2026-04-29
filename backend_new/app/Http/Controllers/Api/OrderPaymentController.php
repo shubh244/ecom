@@ -8,11 +8,33 @@ use App\Models\OrderPayment;
 use App\Models\OrderPaymentScreenshot;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Validator;
 use Razorpay\Api\Api;
 use Razorpay\Api\Errors\Error as RazorpayError;
 
 class OrderPaymentController extends Controller
 {
+    /**
+     * Compatibility endpoint for standard checkout integrations.
+     * Expects: { order_id }
+     */
+    public function createOrder(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
+
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing or invalid order_id.',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        return $this->createRazorpayOrder($request, (int) $validator->validated()['order_id']);
+    }
+
     /**
      * Create a Razorpay order for Checkout (same flow as standard Razorpay web integration).
      */
@@ -48,6 +70,12 @@ class OrderPaymentController extends Controller
             );
 
             $amountPaise = (int) round((float) $order->total_amount * 100);
+            if ($amountPaise < 100) {
+                return response()->json([
+                    'success' => false,
+                    'message' => 'Amount should be at least 100 paise.',
+                ], 400);
+            }
 
             $razorpayOrder = $api->order->create([
                 'receipt' => (string) $order->order_number,
@@ -80,10 +108,13 @@ class OrderPaymentController extends Controller
                 ],
             ]);
         } catch (RazorpayError $e) {
+            $status = str_contains(strtolower($e->getMessage()), 'authentication')
+                ? 401
+                : 502;
             return response()->json([
                 'success' => false,
                 'message' => $e->getMessage(),
-            ], 502);
+            ], $status);
         } catch (\Throwable $e) {
             report($e);
 
@@ -106,11 +137,19 @@ class OrderPaymentController extends Controller
             ], 503);
         }
 
-        $validated = $request->validate([
+        $validator = Validator::make($request->all(), [
             'razorpay_order_id' => 'required|string|max:64',
             'razorpay_payment_id' => 'required|string|max:64',
             'razorpay_signature' => 'required|string|max:255',
         ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing or invalid payment verification fields.',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+        $validated = $validator->validated();
 
         $secret = (string) config('payment.razorpay_key_secret');
         $payload = $validated['razorpay_order_id'].'|'.$validated['razorpay_payment_id'];
@@ -157,6 +196,26 @@ class OrderPaymentController extends Controller
             'message' => 'Payment verified.',
             'data' => $payment->fresh(),
         ]);
+    }
+
+    /**
+     * Compatibility endpoint for standard checkout integrations.
+     * Expects: { order_id, razorpay_order_id, razorpay_payment_id, razorpay_signature }
+     */
+    public function verifyPayment(Request $request): JsonResponse
+    {
+        $validator = Validator::make($request->all(), [
+            'order_id' => 'required|integer|exists:orders,id',
+        ]);
+        if ($validator->fails()) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Missing or invalid order_id.',
+                'errors' => $validator->errors(),
+            ], 400);
+        }
+
+        return $this->verifyRazorpayPayment($request, (int) $validator->validated()['order_id']);
     }
 
     /**
