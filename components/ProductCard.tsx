@@ -6,6 +6,7 @@ import { useState } from 'react'
 import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import Link from 'next/link'
+import { getProductImage } from '@/lib/productImage'
 
 interface ProductCardProps {
   product: Product
@@ -15,6 +16,7 @@ export default function ProductCard({ product }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false)
   const { addToCart } = useCart()
   const { showToast } = useToast()
+  const productImage = getProductImage(product)
 
   const discount = product.original_price
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
@@ -27,7 +29,7 @@ export default function ProductCard({ product }: ProductCardProps) {
         name: product.name,
         price: product.price,
         originalPrice: product.original_price,
-        image: product.image || '/placeholder.jpg',
+        image: productImage,
         category: product.category?.name || '',
         subcategory: product.subcategory,
         rating: product.rating,
@@ -35,7 +37,6 @@ export default function ProductCard({ product }: ProductCardProps) {
         inStock: product.in_stock,
         description: product.description,
       })
-      showToast(`${product.name} added to cart!`, 'success')
     } else {
       showToast('Product is out of stock', 'error')
     }
@@ -49,16 +50,11 @@ export default function ProductCard({ product }: ProductCardProps) {
           <div
             className="w-full h-full bg-cover bg-center group-hover:scale-110 transition duration-300 cursor-pointer"
             style={{
-              backgroundImage: `url(${product.image || '/placeholder.jpg'})`,
+              backgroundImage: `url(${productImage})`,
               backgroundSize: 'cover',
               backgroundPosition: 'center'
             }}
           >
-            {!product.image && (
-              <div className="w-full h-full flex items-center justify-center text-gray-400 text-4xl">
-                🪑
-              </div>
-            )}
           </div>
         </Link>
         

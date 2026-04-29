@@ -1,6 +1,7 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode, useEffect } from 'react'
+import { useToast } from '@/context/ToastContext'
 
 export interface CartProduct {
   id: string
@@ -34,6 +35,7 @@ const CartContext = createContext<CartContextType | undefined>(undefined)
 
 export function CartProvider({ children }: { children: ReactNode }) {
   const [cart, setCart] = useState<CartItem[]>([])
+  const { showToast } = useToast()
 
   // Load cart from localStorage on mount
   useEffect(() => {
@@ -53,9 +55,11 @@ export function CartProvider({ children }: { children: ReactNode }) {
   }, [cart])
 
   const addToCart = (product: CartProduct) => {
+    let wasExisting = false
     setCart((prevCart) => {
       const existingItem = prevCart.find((item) => item.id === product.id)
       if (existingItem) {
+        wasExisting = true
         return prevCart.map((item) =>
           item.id === product.id
             ? { ...item, quantity: item.quantity + 1 }
@@ -64,6 +68,10 @@ export function CartProvider({ children }: { children: ReactNode }) {
       }
       return [...prevCart, { ...product, quantity: 1 }]
     })
+    showToast(
+      wasExisting ? `Updated quantity: ${product.name}` : `${product.name} added to cart!`,
+      'success'
+    )
   }
 
   const removeFromCart = (productId: string) => {

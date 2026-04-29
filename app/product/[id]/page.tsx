@@ -7,6 +7,7 @@ import { FiShoppingCart, FiHeart, FiShare2 } from 'react-icons/fi'
 import { useCart } from '@/context/CartContext'
 import { useToast } from '@/context/ToastContext'
 import Link from 'next/link'
+import { getProductImage } from '@/lib/productImage'
 
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
@@ -60,15 +61,19 @@ export default function ProductPage({ params }: { params: { id: string } }) {
   const discount = product.original_price
     ? Math.round(((product.original_price - product.price) / product.original_price) * 100)
     : 0
+  const productImage = getProductImage(product)
 
   const handleAddToCart = () => {
-    if (!product?.in_stock) return
+    if (!product?.in_stock) {
+      showToast('Product is out of stock', 'error')
+      return
+    }
     addToCart({
       id: product.id.toString(),
       name: product.name,
       price: product.price,
       originalPrice: product.original_price,
-      image: product.image || '/placeholder.jpg',
+      image: productImage,
       category: product.category?.name || '',
       subcategory: product.subcategory,
       rating: product.rating,
@@ -76,7 +81,6 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       inStock: product.in_stock,
       description: product.description,
     })
-    showToast('Added to cart', 'success')
   }
 
   return (
@@ -88,17 +92,11 @@ export default function ProductPage({ params }: { params: { id: string } }) {
             <div
               className="w-full h-full bg-cover bg-center rounded-lg"
               style={{
-                backgroundImage: `url(${product.image || '/placeholder.jpg'})`,
+                backgroundImage: `url(${productImage})`,
                 backgroundSize: 'cover',
                 backgroundPosition: 'center'
               }}
-            >
-              {!product.image && (
-                <div className="w-full h-full flex items-center justify-center text-gray-400 text-8xl">
-                  🪑
-                </div>
-              )}
-            </div>
+            />
           </div>
 
           {/* Product Details */}
