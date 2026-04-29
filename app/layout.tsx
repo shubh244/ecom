@@ -50,6 +50,12 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
   },
   applicationName: SITE_NAME,
+  other: {
+    'geo.region': 'IN-DL',
+    'geo.placename': 'New Delhi',
+    'geo.position': '28.6423;77.1227',
+    ICBM: '28.6423, 77.1227',
+  },
 }
 
 const jsonLd = JSON.stringify(organizationJsonLd())

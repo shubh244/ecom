@@ -10,13 +10,23 @@ export function getSiteUrl(): string {
 }
 
 export const siteSeo = {
-  homeTitle: `${SITE_NAME} | Wooden Furniture in Delhi & Pan India Delivery`,
+  homeTitle: `${SITE_NAME} | Buy Furniture in Delhi, NCR & Pan India`,
   homeDescription:
-    'Buy premium wooden furniture online from Shreejee Blessings Wood — beds, sofas, dining sets, TV units & more. Delhi NCR showrooms (Rajouri Garden, Gurgaon, Noida) with trusted Pan India delivery and secure checkout.',
+    'Buy furniture in Delhi from Shreejee Blessings Wood. Shop premium beds, sofas, dining sets, TV units and custom furniture with trusted Delhi NCR showroom support, secure checkout and Pan India delivery.',
   defaultDescription:
-    'Shreejee Blessings Wood: premium wooden furniture with Delhi NCR stores and Pan India delivery. Shop beds, sofas, dining & home furniture online.',
+    'Buy furniture in Delhi at Shreejee Blessings Wood. Explore wooden beds, sofas, dining sets, TV units and home furniture with Delhi NCR support and Pan India delivery.',
   keywords: [
     SITE_NAME,
+    'buy furniture in Delhi',
+    'buy furniture in delhi',
+    'furniture in delhi',
+    'furniture shop in delhi',
+    'best furniture store delhi',
+    'wooden furniture shop delhi',
+    'home furniture delhi ncr',
+    'sofa and bed shop delhi',
+    'dining table shop delhi',
+    'custom furniture delhi',
     'wooden furniture Delhi',
     'furniture shop Delhi NCR',
     'buy furniture online India',
