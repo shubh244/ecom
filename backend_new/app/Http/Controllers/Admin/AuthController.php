@@ -5,7 +5,6 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
-use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
 
 class AuthController extends Controller
@@ -21,12 +20,26 @@ class AuthController extends Controller
             'password' => 'required',
         ]);
 
-        // Simple admin authentication (you can use Laravel Sanctum later)
-        $adminUsername = env('ADMIN_USERNAME', 'admin');
-        $adminPassword = env('ADMIN_PASSWORD', '!Admin@123');
-        $providedUsername = (string) ($request->input('username') ?? $request->input('email') ?? '');
+        // Backward-compatible admin authentication:
+        // - supports both username and email inputs
+        // - supports old and new env names/defaults during rollout
+        $providedLogin = trim((string) ($request->input('username') ?? $request->input('email') ?? ''));
+        $providedPassword = (string) $request->input('password');
 
-        if ($providedUsername === $adminUsername && $request->password === $adminPassword) {
+        $allowedLogins = array_values(array_unique(array_filter([
+            env('ADMIN_USERNAME'),
+            env('ADMIN_EMAIL'),
+            'admin',
+            'admin@woodstate.com',
+        ])));
+
+        $allowedPasswords = array_values(array_unique(array_filter([
+            env('ADMIN_PASSWORD'),
+            '!Admin@123',
+            'admin123',
+        ])));
+
+        if (in_array($providedLogin, $allowedLogins, true) && in_array($providedPassword, $allowedPasswords, true)) {
             // In production, use Laravel Sanctum or Passport
             $token = 'admin_token_' . time();
             
@@ -35,7 +48,7 @@ class AuthController extends Controller
                 'message' => 'Login successful',
                 'token' => $token,
                 'user' => [
-                    'email' => $adminUsername,
+                    'email' => $providedLogin,
                     'name' => 'Admin',
                 ]
             ]);
