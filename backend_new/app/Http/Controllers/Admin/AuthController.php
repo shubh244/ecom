@@ -16,15 +16,17 @@ class AuthController extends Controller
     public function login(Request $request): JsonResponse
     {
         $request->validate([
-            'email' => 'required|email',
+            'username' => 'nullable|string',
+            'email' => 'nullable|string',
             'password' => 'required',
         ]);
 
         // Simple admin authentication (you can use Laravel Sanctum later)
-        $adminEmail = env('ADMIN_EMAIL', 'admin@woodstate.com');
-        $adminPassword = env('ADMIN_PASSWORD', 'admin123');
+        $adminUsername = env('ADMIN_USERNAME', 'admin');
+        $adminPassword = env('ADMIN_PASSWORD', '!Admin@123');
+        $providedUsername = (string) ($request->input('username') ?? $request->input('email') ?? '');
 
-        if ($request->email === $adminEmail && $request->password === $adminPassword) {
+        if ($providedUsername === $adminUsername && $request->password === $adminPassword) {
             // In production, use Laravel Sanctum or Passport
             $token = 'admin_token_' . time();
             
@@ -33,14 +35,14 @@ class AuthController extends Controller
                 'message' => 'Login successful',
                 'token' => $token,
                 'user' => [
-                    'email' => $adminEmail,
+                    'email' => $adminUsername,
                     'name' => 'Admin',
                 ]
             ]);
         }
 
         throw ValidationException::withMessages([
-            'email' => ['The provided credentials are incorrect.'],
+            'username' => ['The provided credentials are incorrect.'],
         ]);
     }
 

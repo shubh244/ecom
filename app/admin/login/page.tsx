@@ -2,10 +2,10 @@
 
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
-import { FiMail, FiLock } from 'react-icons/fi'
+import { FiLock, FiUser } from 'react-icons/fi'
 
 export default function AdminLogin() {
-  const [email, setEmail] = useState('')
+  const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
@@ -24,7 +24,7 @@ export default function AdminLogin() {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({ email, password }),
+        body: JSON.stringify({ username, password }),
       })
 
       const data = await response.json()
@@ -60,17 +60,17 @@ export default function AdminLogin() {
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-2">
-              Email
+              Username
             </label>
             <div className="relative">
-              <FiMail className="absolute left-3 top-3 text-gray-400" />
+              <FiUser className="absolute left-3 top-3 text-gray-400" />
               <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
                 required
                 className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-primary focus:border-transparent"
-                placeholder="admin@woodstate.com"
+                placeholder="admin"
               />
             </div>
           </div>
@@ -103,7 +103,7 @@ export default function AdminLogin() {
 
         <div className="mt-6 text-center text-sm text-gray-600">
           <p>Default credentials:</p>
-          <p className="font-mono">admin@woodstate.com / admin123</p>
+          <p className="font-mono">admin / !Admin@123</p>
         </div>
       </div>
     </div>

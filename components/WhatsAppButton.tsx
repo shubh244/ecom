@@ -10,9 +10,10 @@ export default function WhatsAppButton() {
   const pathname = usePathname()
   const hidden = pathname?.startsWith('/admin') || pathname?.startsWith('/checkout')
   
-  // Primary WhatsApp number (you can make this configurable)
-  const whatsappNumber = '8467082350'
-  const message = 'Hello! I would like to know more about your furniture products.'
+  // Primary WhatsApp number
+  const whatsappNumber = '7982674272'
+  const customerIntro = 'Hello, this message is from a customer.'
+  const message = `${customerIntro} I would like to know more about your furniture products.`
 
   const whatsappUrl = `https://wa.me/91${whatsappNumber}?text=${encodeURIComponent(message)}`
 
@@ -60,7 +61,7 @@ export default function WhatsAppButton() {
             </p>
             <div className="space-y-2">
               <a
-                href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent('Hello! I would like to know more about your furniture products.')}`}
+                href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent(`${customerIntro} I would like to know more about your furniture products.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="block w-full bg-green-500 hover:bg-green-600 text-white text-center py-2 rounded-lg font-semibold transition"
@@ -69,7 +70,7 @@ export default function WhatsAppButton() {
               </a>
               <div className="flex gap-2">
                 <a
-                  href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent('I want to place an order')}`}
+                  href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent(`${customerIntro} I want to place an order.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-center py-2 rounded-lg text-sm transition"
@@ -77,7 +78,7 @@ export default function WhatsAppButton() {
                   Place Order
                 </a>
                 <a
-                  href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent('I need product information')}`}
+                  href={`https://wa.me/91${whatsappNumber}?text=${encodeURIComponent(`${customerIntro} I need product information.`)}`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex-1 bg-white border border-gray-300 hover:bg-gray-50 text-gray-700 text-center py-2 rounded-lg text-sm transition"

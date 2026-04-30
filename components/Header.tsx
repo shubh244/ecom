@@ -307,6 +307,8 @@ export default function Header() {
         <div className="container mx-auto px-3 sm:px-4 flex items-center justify-center gap-2 sm:gap-4 flex-wrap text-xs sm:text-sm">
           <span className="font-semibold">Support 24/7</span>
           <span>|</span>
+          <a href="tel:7982674272" className="hover:text-yellow-400">7982674272</a>
+          <span>|</span>
           <a href="tel:8467082350" className="hover:text-yellow-400">8467082350</a>
           <span>|</span>
           <a href="tel:9760232667" className="hover:text-yellow-400">9760232667</a>
