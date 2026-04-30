@@ -12,6 +12,7 @@ import { getProductImage } from '@/lib/productImage'
 export default function ProductPage({ params }: { params: { id: string } }) {
   const [product, setProduct] = useState<Product | null>(null)
   const [loading, setLoading] = useState(true)
+  const [justAdded, setJustAdded] = useState(false)
   const { addToCart } = useCart()
   const { showToast } = useToast()
 
@@ -81,6 +82,8 @@ export default function ProductPage({ params }: { params: { id: string } }) {
       inStock: product.in_stock,
       description: product.description,
     })
+    setJustAdded(true)
+    window.setTimeout(() => setJustAdded(false), 1500)
   }
 
   return (
@@ -164,12 +167,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
                 onClick={handleAddToCart}
                 className={`flex-1 min-h-[48px] py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 touch-manipulation ${
                   product.in_stock
-                    ? 'bg-primary hover:bg-secondary text-white active:scale-[0.99]'
+                    ? justAdded
+                      ? 'bg-green-600 text-white'
+                      : 'bg-primary hover:bg-secondary text-white active:scale-[0.99]'
                     : 'bg-gray-300 text-gray-500 cursor-not-allowed'
                 }`}
               >
                 <FiShoppingCart />
-                Add to cart
+                {product.in_stock ? (justAdded ? 'Added ✓' : 'Add to cart') : 'Out of stock'}
               </button>
               <button
                 type="button"
@@ -216,12 +221,14 @@ export default function ProductPage({ params }: { params: { id: string } }) {
           onClick={handleAddToCart}
           className={`shrink-0 min-h-[48px] px-5 rounded-xl font-semibold flex items-center justify-center gap-2 touch-manipulation ${
             product.in_stock
-              ? 'bg-primary text-white active:scale-[0.98]'
+              ? justAdded
+                ? 'bg-green-600 text-white'
+                : 'bg-primary text-white active:scale-[0.98]'
               : 'bg-gray-200 text-gray-500 cursor-not-allowed'
           }`}
         >
           <FiShoppingCart className="text-lg" />
-          {product.in_stock ? 'Add to cart' : 'Out of stock'}
+          {product.in_stock ? (justAdded ? 'Added ✓' : 'Add to cart') : 'Out of stock'}
         </button>
       </div>
     </div>

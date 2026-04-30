@@ -14,6 +14,7 @@ interface ProductCardProps {
 
 export default function ProductCard({ product }: ProductCardProps) {
   const [isWishlisted, setIsWishlisted] = useState(false)
+  const [justAdded, setJustAdded] = useState(false)
   const { addToCart } = useCart()
   const { showToast } = useToast()
   const productImage = getProductImage(product)
@@ -37,6 +38,8 @@ export default function ProductCard({ product }: ProductCardProps) {
         inStock: product.in_stock,
         description: product.description,
       })
+      setJustAdded(true)
+      window.setTimeout(() => setJustAdded(false), 1500)
     } else {
       showToast('Product is out of stock', 'error')
     }
@@ -141,12 +144,14 @@ export default function ProductCard({ product }: ProductCardProps) {
           onClick={handleAddToCart}
           className={`w-full min-h-[48px] py-3 rounded-xl font-semibold transition flex items-center justify-center gap-2 touch-manipulation ${
             product.in_stock
-              ? 'bg-primary hover:bg-secondary text-white active:scale-[0.98]'
+              ? justAdded
+                ? 'bg-green-600 text-white'
+                : 'bg-primary hover:bg-secondary text-white active:scale-[0.98]'
               : 'bg-gray-300 text-gray-500 cursor-not-allowed'
           }`}
         >
           <FiShoppingCart />
-          {product.in_stock ? 'Add to Cart' : 'Out of Stock'}
+          {product.in_stock ? (justAdded ? 'Added ✓' : 'Add to Cart') : 'Out of Stock'}
         </button>
       </div>
     </div>
