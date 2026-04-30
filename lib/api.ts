@@ -202,6 +202,39 @@ class ApiClient {
     })
   }
 
+  /** Multipart upload; persists file on API server and returns public image URL. */
+  async uploadAdminProductImage(productId: number, file: File) {
+    const url = `${this.baseUrl}/admin/products/${productId}/image`
+    const form = new FormData()
+    form.append('image', file)
+    const response = await fetch(url, {
+      method: 'POST',
+      body: form,
+      headers: {
+        Accept: 'application/json',
+        ...this.getAdminHeaders(),
+      },
+    })
+    if (!response.ok) {
+      let msg = response.statusText
+      try {
+        const err = await response.json()
+        msg =
+          (typeof err.message === 'string' && err.message) ||
+          (err.errors && JSON.stringify(err.errors)) ||
+          JSON.stringify(err)
+      } catch {
+        /* ignore */
+      }
+      throw new Error(msg)
+    }
+    const json = (await response.json()) as ApiResponse<{
+      url: string
+      product: unknown
+    }>
+    return json.data
+  }
+
   async getAdminOrders(params?: any) {
     const queryParams = new URLSearchParams()
     if (params) {

@@ -22,7 +22,8 @@ Route::prefix('admin')->group(function () {
         // Dashboard
         Route::get('/dashboard', [DashboardController::class, 'index']);
         
-        // Products
+        // Products (upload route must be registered before apiResource {product} show/update)
+        Route::post('products/{product}/image', [ProductController::class, 'uploadImage']);
         Route::apiResource('products', ProductController::class);
         
         // Orders

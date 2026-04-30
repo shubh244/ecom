@@ -16,17 +16,49 @@ class ProductController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = Product::with('category');
-        
+
         if ($request->has('search')) {
             $query->where('name', 'like', '%' . $request->search . '%');
         }
-        
-        $products = $query->orderBy('created_at', 'desc')->paginate(20);
-        
+
+        if ($request->filled('category_id')) {
+            $query->where('category_id', $request->integer('category_id'));
+        }
+
+        // Admin UI needs all rows; default was 20 so many products looked "missing".
+        $perPage = (int) $request->input('per_page', 100);
+        $perPage = max(1, min($perPage, 500));
+
+        $products = $query->orderBy('created_at', 'desc')->paginate($perPage);
+
         return response()->json([
             'success' => true,
-            'data' => $products
+            'data' => $products,
         ]);
+    }
+
+    /**
+     * Upload a product image file; stores on public disk and saves URL on the product.
+     */
+    public function uploadImage(Request $request, Product $product): JsonResponse
+    {
+        $request->validate([
+            'image' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
+        ]);
+
+        $path = $request->file('image')->store('products/'.$product->id, 'public');
+        $url = asset('storage/'.$path);
+
+        $product->update(['image' => $url]);
+
+        return response()->json([
+            'success' => true,
+            'message' => 'Image uploaded.',
+            'data' => [
+                'url' => $url,
+                'product' => $product->fresh()->load('category'),
+            ],
+        ], 201);
     }
 
     /**

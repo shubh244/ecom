@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiMenu, FiX, FiShoppingCart, FiUser, FiHeart, FiSearch } from 'react-icons/fi'
 import { categories } from '@/lib/data'
@@ -13,8 +13,12 @@ export default function Header() {
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [showCartNotice, setShowCartNotice] = useState(false)
   const { getTotalItems } = useCart()
   const router = useRouter()
+  const totalItems = getTotalItems()
+  const prevItemsRef = useRef<number>(totalItems)
+  const hydratedRef = useRef(false)
 
   const categorySearchMap: Record<string, string> = {
     'Beds': 'bed',
@@ -59,6 +63,23 @@ export default function Header() {
     window.addEventListener('open-cart', onOpenCart)
     return () => window.removeEventListener('open-cart', onOpenCart)
   }, [])
+
+  useEffect(() => {
+    if (!hydratedRef.current) {
+      hydratedRef.current = true
+      prevItemsRef.current = totalItems
+      return
+    }
+
+    if (totalItems > prevItemsRef.current) {
+      setShowCartNotice(true)
+      const timer = setTimeout(() => setShowCartNotice(false), 1800)
+      prevItemsRef.current = totalItems
+      return () => clearTimeout(timer)
+    }
+
+    prevItemsRef.current = totalItems
+  }, [totalItems])
 
   return (
     <header
@@ -136,12 +157,17 @@ export default function Header() {
               type="button"
               onClick={() => setIsCartOpen(true)}
               className="relative min-h-[44px] min-w-[44px] flex items-center justify-center rounded-xl hover:text-primary active:bg-gray-50 touch-manipulation"
-              aria-label={`Shopping cart${getTotalItems() > 0 ? `, ${getTotalItems()} items` : ''}`}
+              aria-label={`Shopping cart${totalItems > 0 ? `, ${totalItems} items` : ''}`}
             >
               <FiShoppingCart className="text-xl" />
-              {getTotalItems() > 0 && (
+              {totalItems > 0 && (
                 <span className="absolute top-1 right-1 bg-red-500 text-white text-[10px] font-bold rounded-full min-w-[1.125rem] h-[1.125rem] px-0.5 flex items-center justify-center">
-                  {getTotalItems() > 9 ? '9+' : getTotalItems()}
+                  {totalItems > 9 ? '9+' : totalItems}
+                </span>
+              )}
+              {showCartNotice && (
+                <span className="hidden sm:block absolute -right-2 -bottom-8 whitespace-nowrap bg-green-600 text-white text-xs font-semibold px-2 py-1 rounded-md shadow-md animate-slide-up">
+                  Added to cart
                 </span>
               )}
             </button>

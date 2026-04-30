@@ -1,20 +1,33 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FiEdit, FiTrash2, FiPlus, FiSearch } from 'react-icons/fi'
+import { FiEdit, FiTrash2, FiPlus, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
 import { Product, Category } from '@/lib/types'
 import { apiClient } from '@/lib/api'
+
+const PER_PAGE = 20
 
 export default function AdminProducts() {
   const [products, setProducts] = useState<Product[]>([])
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
+  const [listLoading, setListLoading] = useState(false)
   const [showModal, setShowModal] = useState(false)
   const [editingProduct, setEditingProduct] = useState<Product | null>(null)
   const [searchTerm, setSearchTerm] = useState('')
+  const [debouncedSearch, setDebouncedSearch] = useState('')
   const [categoryFilter, setCategoryFilter] = useState<string>('all')
+  const [page, setPage] = useState(1)
+  const [pagination, setPagination] = useState({
+    current_page: 1,
+    last_page: 1,
+    total: 0,
+    per_page: PER_PAGE,
+    from: 0 as number | null,
+    to: 0 as number | null,
+  })
   const router = useRouter()
 
   useEffect(() => {
@@ -24,21 +37,55 @@ export default function AdminProducts() {
       return
     }
 
-    fetchProducts()
     fetchCategories()
   }, [router])
 
-  const fetchProducts = async () => {
+  useEffect(() => {
+    const id = window.setTimeout(() => {
+      const next = searchTerm.trim()
+      setDebouncedSearch((prev) => {
+        if (prev !== next) setPage(1)
+        return next
+      })
+    }, 400)
+    return () => window.clearTimeout(id)
+  }, [searchTerm])
+
+  const loadProducts = useCallback(async () => {
+    const token = localStorage.getItem('admin_token')
+    if (!token) return
+
+    setListLoading(true)
     try {
-      const paginator = await apiClient.getAdminProducts({ per_page: 100 })
+      const params: Record<string, string | number> = {
+        per_page: PER_PAGE,
+        page,
+      }
+      if (debouncedSearch) params.search = debouncedSearch
+      if (categoryFilter !== 'all') params.category_id = categoryFilter
+
+      const paginator = await apiClient.getAdminProducts(params)
       const list = paginator?.data
       setProducts(Array.isArray(list) ? list : [])
+      setPagination({
+        current_page: typeof paginator?.current_page === 'number' ? paginator.current_page : 1,
+        last_page: typeof paginator?.last_page === 'number' ? paginator.last_page : 1,
+        total: typeof paginator?.total === 'number' ? paginator.total : 0,
+        per_page: typeof paginator?.per_page === 'number' ? paginator.per_page : PER_PAGE,
+        from: paginator?.from ?? null,
+        to: paginator?.to ?? null,
+      })
     } catch (error) {
       console.error('Error fetching products:', error)
     } finally {
+      setListLoading(false)
       setLoading(false)
     }
-  }
+  }, [page, debouncedSearch, categoryFilter])
+
+  useEffect(() => {
+    loadProducts()
+  }, [loadProducts])
 
   const fetchCategories = async () => {
     try {
@@ -54,17 +101,20 @@ export default function AdminProducts() {
 
     try {
       await apiClient.deleteAdminProduct(id)
-      fetchProducts()
+      if (products.length === 1 && page > 1) {
+        setPage((p) => Math.max(1, p - 1))
+      } else {
+        await loadProducts()
+      }
     } catch (error) {
       console.error('Error deleting product:', error)
     }
   }
 
-  const filteredProducts = products.filter(p => {
-    const matchesSearch = p.name.toLowerCase().includes(searchTerm.toLowerCase())
-    const matchesCategory = categoryFilter === 'all' || p.category_id?.toString() === categoryFilter
-    return matchesSearch && matchesCategory
-  })
+  const goToPage = (next: number) => {
+    const clamped = Math.max(1, Math.min(next, pagination.last_page))
+    setPage(clamped)
+  }
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
@@ -99,7 +149,10 @@ export default function AdminProducts() {
             <div className="flex gap-3 w-full sm:w-auto">
               <select
                 value={categoryFilter}
-                onChange={(e) => setCategoryFilter(e.target.value)}
+                onChange={(e) => {
+                  setPage(1)
+                  setCategoryFilter(e.target.value)
+                }}
                 className="px-4 py-2 border border-gray-300 rounded-lg bg-white"
               >
                 <option value="all">All Categories</option>
@@ -121,7 +174,7 @@ export default function AdminProducts() {
             </div>
           </div>
 
-          <div className="overflow-x-auto">
+          <div className={`overflow-x-auto relative ${listLoading ? 'opacity-60' : ''}`}>
             <table className="w-full">
               <thead className="bg-gray-50">
                 <tr>
@@ -135,7 +188,14 @@ export default function AdminProducts() {
                 </tr>
               </thead>
               <tbody>
-                {filteredProducts.map((product) => (
+                {products.length === 0 && !listLoading ? (
+                  <tr>
+                    <td colSpan={7} className="px-4 py-8 text-center text-gray-500">
+                      No products on this page. Try another page or clear filters.
+                    </td>
+                  </tr>
+                ) : null}
+                {products.map((product) => (
                   <tr key={product.id} className="border-t">
                     <td className="px-4 py-3">
                       <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
@@ -200,6 +260,52 @@ export default function AdminProducts() {
               </tbody>
             </table>
           </div>
+
+          {(pagination.total > 0 || pagination.last_page > 1) && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mt-6 pt-4 border-t border-gray-200">
+              <p className="text-sm text-gray-600">
+                {pagination.total === 0 ? (
+                  'No products match these filters.'
+                ) : (
+                  <>
+                    Showing{' '}
+                    <span className="font-medium">
+                      {pagination.from ?? 0}–{pagination.to ?? 0}
+                    </span>{' '}
+                    of <span className="font-medium">{pagination.total}</span>
+                    {pagination.last_page > 1 ? (
+                      <span className="text-gray-500"> ({pagination.per_page} per page)</span>
+                    ) : null}
+                  </>
+                )}
+              </p>
+              {pagination.last_page > 1 ? (
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page - 1)}
+                    disabled={page <= 1 || listLoading}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    <FiChevronLeft className="w-4 h-4" />
+                    Previous
+                  </button>
+                  <span className="text-sm text-gray-600 px-2 tabular-nums">
+                    Page {pagination.current_page} of {pagination.last_page}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(page + 1)}
+                    disabled={page >= pagination.last_page || listLoading}
+                    className="inline-flex items-center gap-1 px-3 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 disabled:opacity-40 disabled:pointer-events-none"
+                  >
+                    Next
+                    <FiChevronRight className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : null}
+            </div>
+          )}
         </div>
       </main>
 
@@ -212,7 +318,7 @@ export default function AdminProducts() {
             setEditingProduct(null)
           }}
           onSave={() => {
-            fetchProducts()
+            void loadProducts()
             setShowModal(false)
             setEditingProduct(null)
           }}
@@ -244,6 +350,23 @@ function ProductModal({ product, categories, onClose, onSave }: {
     offer_percentage: product?.offer_percentage || 0,
   })
   const [saving, setSaving] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+
+  const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file || !product) return
+    setUploadingImage(true)
+    try {
+      const { url } = await apiClient.uploadAdminProductImage(product.id, file)
+      setFormData((prev) => ({ ...prev, image: url }))
+    } catch (err) {
+      console.error('Image upload failed:', err)
+      alert(err instanceof Error ? err.message : 'Image upload failed')
+    } finally {
+      setUploadingImage(false)
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -320,14 +443,34 @@ function ProductModal({ product, categories, onClose, onSave }: {
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium mb-1">Image URL</label>
+            <div className="col-span-2">
+              <label className="block text-sm font-medium mb-1">Image</label>
               <input
                 type="text"
                 value={formData.image}
                 onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+                placeholder="https://… or upload below"
+                className="w-full px-3 py-2 border rounded-lg mb-2"
               />
+              {product ? (
+                <div className="flex flex-wrap items-center gap-3">
+                  <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/jpeg,image/png,image/gif,image/webp"
+                      onChange={handleImageFile}
+                      disabled={uploadingImage}
+                      className="text-sm"
+                    />
+                    {uploadingImage ? <span>Uploading…</span> : <span>Upload file (saved on server)</span>}
+                  </label>
+                  {formData.image ? (
+                    <img src={formData.image} alt="" className="h-14 w-14 object-cover rounded border" />
+                  ) : null}
+                </div>
+              ) : (
+                <p className="text-sm text-gray-500">Create the product first, then edit it to upload an image file.</p>
+              )}
             </div>
 
             <div>
