@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FiEdit, FiTrash2, FiPlus, FiSearch, FiChevronLeft, FiChevronRight } from 'react-icons/fi'
+import { FiEdit, FiTrash2, FiPlus, FiSearch, FiChevronLeft, FiChevronRight, FiImage } from 'react-icons/fi'
 import { Product, Category } from '@/lib/types'
 import { apiClient } from '@/lib/api'
 
@@ -116,6 +116,19 @@ export default function AdminProducts() {
     setPage(clamped)
   }
 
+  const handleRowImageReplace = async (productId: number, e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    e.target.value = ''
+    if (!file) return
+    try {
+      await apiClient.uploadAdminProductImage(productId, file)
+      await loadProducts()
+    } catch (err) {
+      console.error('Row image upload failed:', err)
+      alert(err instanceof Error ? err.message : 'Image upload failed')
+    }
+  }
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center">Loading...</div>
   }
@@ -198,12 +211,24 @@ export default function AdminProducts() {
                 {products.map((product) => (
                   <tr key={product.id} className="border-t">
                     <td className="px-4 py-3">
-                      <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center">
-                        {product.image ? (
-                          <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded" />
-                        ) : (
-                          <span className="text-2xl">🪑</span>
-                        )}
+                      <div className="flex flex-col items-start gap-1.5">
+                        <div className="w-16 h-16 bg-gray-200 rounded flex items-center justify-center shrink-0">
+                          {product.image ? (
+                            <img src={product.image} alt={product.name} className="w-full h-full object-cover rounded" />
+                          ) : (
+                            <span className="text-2xl">🪑</span>
+                          )}
+                        </div>
+                        <label className="inline-flex items-center gap-1 text-xs font-semibold text-primary cursor-pointer hover:underline">
+                          <FiImage className="w-3.5 h-3.5" />
+                          <span>Upload / replace</span>
+                          <input
+                            type="file"
+                            accept="image/jpeg,image/png,image/gif,image/webp"
+                            className="sr-only"
+                            onChange={(ev) => handleRowImageReplace(product.id, ev)}
+                          />
+                        </label>
                       </div>
                     </td>
                     <td className="px-4 py-3 font-semibold">{product.name}</td>
@@ -334,6 +359,7 @@ function ProductModal({ product, categories, onClose, onSave }: {
   onClose: () => void
   onSave: () => void
 }) {
+  const [pendingImageFile, setPendingImageFile] = useState<File | null>(null)
   const [formData, setFormData] = useState({
     name: product?.name || '',
     price: product?.price || 0,
@@ -355,7 +381,11 @@ function ProductModal({ product, categories, onClose, onSave }: {
   const handleImageFile = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
     e.target.value = ''
-    if (!file || !product) return
+    if (!file) return
+    if (!product) {
+      setPendingImageFile(file)
+      return
+    }
     setUploadingImage(true)
     try {
       const { url } = await apiClient.uploadAdminProductImage(product.id, file)
@@ -376,7 +406,21 @@ function ProductModal({ product, categories, onClose, onSave }: {
       if (product) {
         await apiClient.updateAdminProduct(product.id, formData)
       } else {
-        await apiClient.createAdminProduct(formData)
+        const created = await apiClient.createAdminProduct(formData)
+        const newId = typeof created?.id === 'number' ? created.id : null
+        if (pendingImageFile && newId) {
+          try {
+            await apiClient.uploadAdminProductImage(newId, pendingImageFile)
+          } catch (uploadErr) {
+            console.error('Post-create image upload failed:', uploadErr)
+            alert(
+              uploadErr instanceof Error
+                ? uploadErr.message
+                : 'Product was created but image upload failed. Edit the product to upload a photo.'
+            )
+          }
+        }
+        setPendingImageFile(null)
       }
       onSave()
     } catch (error) {
@@ -452,25 +496,33 @@ function ProductModal({ product, categories, onClose, onSave }: {
                 placeholder="https://… or upload below"
                 className="w-full px-3 py-2 border rounded-lg mb-2"
               />
-              {product ? (
-                <div className="flex flex-wrap items-center gap-3">
-                  <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/jpeg,image/png,image/gif,image/webp"
-                      onChange={handleImageFile}
-                      disabled={uploadingImage}
-                      className="text-sm"
-                    />
-                    {uploadingImage ? <span>Uploading…</span> : <span>Upload file (saved on server)</span>}
-                  </label>
-                  {formData.image ? (
-                    <img src={formData.image} alt="" className="h-14 w-14 object-cover rounded border" />
-                  ) : null}
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">Create the product first, then edit it to upload an image file.</p>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <label className="inline-flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
+                  <input
+                    type="file"
+                    accept="image/jpeg,image/png,image/gif,image/webp"
+                    onChange={handleImageFile}
+                    disabled={uploadingImage}
+                    className="text-sm"
+                  />
+                  {uploadingImage ? (
+                    <span>Uploading…</span>
+                  ) : product ? (
+                    <span>Upload file (replaces current photo)</span>
+                  ) : (
+                    <span>
+                      {pendingImageFile
+                        ? `Will upload after save: ${pendingImageFile.name}`
+                        : 'Choose file — uploads after product is created'}
+                    </span>
+                  )}
+                </label>
+                {formData.image ? (
+                  <img src={formData.image} alt="" className="h-14 w-14 object-cover rounded border" />
+                ) : pendingImageFile && !product ? (
+                  <span className="text-xs text-gray-500">Preview available after save</span>
+                ) : null}
+              </div>
             </div>
 
             <div>

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
-import { FiPackage, FiShoppingCart, FiClock, FiDollarSign, FiTag, FiGrid } from 'react-icons/fi'
+import { FiPackage, FiShoppingCart, FiClock, FiDollarSign, FiTag, FiGrid, FiImage } from 'react-icons/fi'
 import { apiClient } from '@/lib/api'
 
 interface DashboardStats {
@@ -18,6 +18,10 @@ interface DashboardStats {
 export default function AdminDashboard() {
   const [stats, setStats] = useState<DashboardStats | null>(null)
   const [loading, setLoading] = useState(true)
+  const [photoProductId, setPhotoProductId] = useState('')
+  const [photoFile, setPhotoFile] = useState<File | null>(null)
+  const [photoBusy, setPhotoBusy] = useState(false)
+  const [photoMessage, setPhotoMessage] = useState<{ type: 'ok' | 'err'; text: string } | null>(null)
   const router = useRouter()
 
   useEffect(() => {
@@ -47,6 +51,36 @@ export default function AdminDashboard() {
     localStorage.removeItem('admin_token')
     localStorage.removeItem('admin_user')
     router.push('/admin/login')
+  }
+
+  const handleDashboardPhotoUpload = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setPhotoMessage(null)
+    const id = parseInt(photoProductId.trim(), 10)
+    if (!id || id < 1) {
+      setPhotoMessage({ type: 'err', text: 'Enter a valid product ID (from the Products page).' })
+      return
+    }
+    if (!photoFile) {
+      setPhotoMessage({ type: 'err', text: 'Choose an image file to upload.' })
+      return
+    }
+    setPhotoBusy(true)
+    try {
+      await apiClient.uploadAdminProductImage(id, photoFile)
+      setPhotoMessage({
+        type: 'ok',
+        text: 'Photo updated. The product image field now points to the uploaded file URL.',
+      })
+      setPhotoFile(null)
+    } catch (err) {
+      setPhotoMessage({
+        type: 'err',
+        text: err instanceof Error ? err.message : 'Upload failed. Check product ID and try again.',
+      })
+    } finally {
+      setPhotoBusy(false)
+    }
   }
 
   if (loading) {
@@ -173,6 +207,52 @@ export default function AdminDashboard() {
                 View Orders
               </Link>
             </div>
+          </div>
+
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <div className="flex items-center gap-2 mb-4">
+              <FiImage className="text-2xl text-primary" />
+              <h3 className="text-xl font-bold">Replace product photo</h3>
+            </div>
+            <p className="text-sm text-gray-600 mb-4">
+              Upload a new image for any product by ID. The stored image URL on that product is replaced with the file you upload (same as Products → edit → upload).
+            </p>
+            <form onSubmit={handleDashboardPhotoUpload} className="space-y-3">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
+                <input
+                  type="number"
+                  min={1}
+                  value={photoProductId}
+                  onChange={(e) => setPhotoProductId(e.target.value)}
+                  placeholder="e.g. 42"
+                  className="w-full px-3 py-2 border border-gray-300 rounded-lg"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Image file</label>
+                <input
+                  type="file"
+                  accept="image/jpeg,image/png,image/gif,image/webp"
+                  onChange={(e) => setPhotoFile(e.target.files?.[0] ?? null)}
+                  className="w-full text-sm"
+                />
+              </div>
+              {photoMessage ? (
+                <p
+                  className={`text-sm ${photoMessage.type === 'ok' ? 'text-green-700' : 'text-red-600'}`}
+                >
+                  {photoMessage.text}
+                </p>
+              ) : null}
+              <button
+                type="submit"
+                disabled={photoBusy}
+                className="w-full bg-amber-700 hover:bg-amber-800 text-white py-2 px-4 rounded-lg font-semibold disabled:opacity-50"
+              >
+                {photoBusy ? 'Uploading…' : 'Upload & replace photo'}
+              </button>
+            </form>
           </div>
         </div>
       </main>
