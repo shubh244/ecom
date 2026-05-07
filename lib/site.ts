@@ -1,12 +1,27 @@
 /** Public site name (matches product branding). */
 export const SITE_NAME = 'Shreejee Blessings Wood'
 
-/** Canonical site URL for metadata, sitemap, and JSON-LD. Set in production. */
+/**
+ * Canonical storefront URL (metadata, sitemap, JSON-LD, Open Graph).
+ *
+ * For production (e.g. shreejeeblessingwood.in on Vercel), set in Vercel env:
+ *   NEXT_PUBLIC_SITE_URL=https://www.shreejeeblessingwood.in
+ * Otherwise `VERCEL_URL` may still point at a *.vercel.app host and SEO URLs will be wrong.
+ */
 export function getSiteUrl(): string {
   const explicit = process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, '')
   if (explicit) return explicit
   if (process.env.VERCEL_URL) return `https://${process.env.VERCEL_URL.replace(/\/$/, '')}`
   return 'https://www.shreejeeblessingwood.in'
+}
+
+/**
+ * Public Laravel API base URL (must end with `/api` in production).
+ * Set NEXT_PUBLIC_API_URL to your API host, e.g. https://api.shreejeeblessingwood.in/api
+ */
+export function getPublicApiUrl(): string {
+  const base = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+  return base.replace(/\/$/, '')
 }
 
 export const siteSeo = {

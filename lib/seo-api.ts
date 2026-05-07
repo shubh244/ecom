@@ -1,3 +1,5 @@
+import { getPublicApiUrl } from '@/lib/site'
+
 type ProductMeta = {
   name: string
   description?: string | null
@@ -7,7 +9,7 @@ type ProductMeta = {
 type CategoryMeta = { name: string; slug: string }
 
 function apiBase(): string {
-  return (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api').replace(/\/$/, '')
+  return getPublicApiUrl()
 }
 
 export async function fetchProductForMeta(id: string): Promise<ProductMeta | null> {

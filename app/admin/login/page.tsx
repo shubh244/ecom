@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiLock, FiUser } from 'react-icons/fi'
+import { getPublicApiUrl } from '@/lib/site'
 
 export default function AdminLogin() {
   const [username, setUsername] = useState('')
@@ -16,7 +17,7 @@ export default function AdminLogin() {
     setError('')
     setLoading(true)
 
-    const apiBase = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+    const apiBase = getPublicApiUrl()
 
     try {
       const response = await fetch(`${apiBase}/admin/login`, {

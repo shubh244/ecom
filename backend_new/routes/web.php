@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     $frontendUrl = rtrim((string) env('FRONTEND_URL', ''), '/');
+    $currentOrigin = rtrim(request()->getSchemeAndHttpHost(), '/');
 
     // Fallback: use first allowed CORS origin as storefront URL.
     if ($frontendUrl === '') {
@@ -13,7 +14,8 @@ Route::get('/', function () {
         }
     }
 
-    if ($frontendUrl !== '') {
+    // Avoid redirect loops when the frontend is served on the same host.
+    if ($frontendUrl !== '' && $frontendUrl !== $currentOrigin) {
         return redirect()->away($frontendUrl);
     }
 

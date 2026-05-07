@@ -1,4 +1,6 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000/api'
+import { getPublicApiUrl } from '@/lib/site'
+
+const API_BASE_URL = getPublicApiUrl()
 
 interface ApiResponse<T> {
   success: boolean

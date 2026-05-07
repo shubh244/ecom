@@ -23,6 +23,16 @@ php artisan db:seed --force
 
 This Docker image already includes `pdo_pgsql`, so it can connect to Supabase Postgres.
 
+### Custom API domain (`api.shreejeeblessingwood.in`)
+
+After adding the custom domain in Render and GoDaddy **CNAME** `api` → your service on Render, set:
+
+- `APP_URL=https://api.shreejeeblessingwood.in` (so `asset()` URLs for uploaded images are correct)
+- `FRONTEND_URL=https://www.shreejeeblessingwood.in` (match your canonical storefront)
+- `CORS_ALLOWED_ORIGINS=https://www.shreejeeblessingwood.in,https://shreejeeblessingwood.in` (comma-separated, no trailing slashes)
+
+Redeploy the service. Frontend must use `NEXT_PUBLIC_API_URL=https://api.shreejeeblessingwood.in/api`.
+
 ---
 
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
