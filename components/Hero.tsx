@@ -65,81 +65,79 @@ export default function Hero() {
     goToSlide((currentSlide - 1 + slides.length) % slides.length)
   }
 
+  /** One slide at a time so the browser only loads the active hero image (not all slides at once). */
+  const slide = slides[currentSlide]
+
   return (
     <div className="relative w-full h-[60vh] sm:h-[70vh] md:h-[80vh] lg:h-[90vh] overflow-hidden group">
-      {/* Slides */}
-      {slides.map((slide, index) => (
+      <div className="absolute inset-0 z-10 transition-opacity duration-1000 ease-in-out">
+        {/* Background — single URL per paint */}
         <div
-          key={index}
-          className={`absolute inset-0 transition-all duration-1000 ease-in-out ${
-            index === currentSlide 
-              ? 'opacity-100 scale-100 z-10' 
-              : 'opacity-0 scale-105 z-0'
-          }`}
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-opacity duration-700"
+          style={{
+            backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%), url(${slide.image})`,
+          }}
         >
-          {/* Background Image with Overlay */}
-          <div
-            className="absolute inset-0 bg-cover bg-center bg-no-repeat"
-            style={{
-              backgroundImage: `linear-gradient(135deg, rgba(0,0,0,0.6) 0%, rgba(0,0,0,0.3) 50%, rgba(0,0,0,0.5) 100%), url(${slide.image})`,
-            }}
-          >
-            {/* Animated Gradient Overlay */}
-            <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20 animate-gradient-shift"></div>
-          </div>
+          <div className="absolute inset-0 bg-gradient-to-r from-primary/20 via-transparent to-secondary/20 animate-gradient-shift" />
+        </div>
 
-          {/* Content */}
-          <div className="relative z-10 h-full flex items-center">
-            <div className="container mx-auto px-4 sm:px-6 lg:px-8">
-              <div className="max-w-2xl lg:max-w-3xl">
-                {/* Badge */}
-                <div className="mb-4 sm:mb-6 animate-fade-in-up">
-                  <span className="inline-block bg-red-500 text-white px-4 py-2 rounded-full text-sm sm:text-base font-bold shadow-lg animate-pulse">
-                    🔥 {slide.badge}
+        <div className="relative z-10 h-full flex items-center">
+          <div className="container mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="max-w-2xl lg:max-w-3xl">
+              <div className="mb-4 sm:mb-6 animate-fade-in-up" key={`badge-${currentSlide}`}>
+                <span className="inline-block bg-red-500 text-white px-4 py-2 rounded-full text-sm sm:text-base font-bold shadow-lg animate-pulse">
+                  🔥 {slide.badge}
+                </span>
+                {slide.discount && (
+                  <span className="ml-3 inline-block bg-yellow-400 text-gray-900 px-4 py-2 rounded-full text-sm sm:text-base font-bold shadow-lg">
+                    {slide.discount}
                   </span>
-                  {slide.discount && (
-                    <span className="ml-3 inline-block bg-yellow-400 text-gray-900 px-4 py-2 rounded-full text-sm sm:text-base font-bold shadow-lg">
-                      {slide.discount}
-                    </span>
-                  )}
-                </div>
+                )}
+              </div>
 
-                {/* Title */}
-                <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-3 sm:mb-4 leading-tight animate-fade-in-up animation-delay-200">
-                  {slide.title}
-                </h1>
+              <h1
+                className="text-3xl sm:text-4xl md:text-5xl lg:text-6xl xl:text-7xl font-bold text-white mb-3 sm:mb-4 leading-tight animate-fade-in-up animation-delay-200"
+                key={`title-${currentSlide}`}
+              >
+                {slide.title}
+              </h1>
 
-                {/* Subtitle */}
-                <h2 className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-yellow-300 mb-3 sm:mb-4 font-semibold animate-fade-in-up animation-delay-400">
-                  {slide.subtitle}
-                </h2>
+              <h2
+                className="text-lg sm:text-xl md:text-2xl lg:text-3xl text-yellow-300 mb-3 sm:mb-4 font-semibold animate-fade-in-up animation-delay-400"
+                key={`sub-${currentSlide}`}
+              >
+                {slide.subtitle}
+              </h2>
 
-                {/* Description */}
-                <p className="text-sm sm:text-base md:text-lg text-gray-200 mb-6 sm:mb-8 max-w-xl leading-relaxed animate-fade-in-up animation-delay-600">
-                  {slide.description}
-                </p>
+              <p
+                className="text-sm sm:text-base md:text-lg text-gray-200 mb-6 sm:mb-8 max-w-xl leading-relaxed animate-fade-in-up animation-delay-600"
+                key={`desc-${currentSlide}`}
+              >
+                {slide.description}
+              </p>
 
-                {/* CTA Buttons */}
-                <div className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up animation-delay-800">
-                  <Link
-                    href={slide.ctaLink}
-                    className="group/btn inline-flex items-center justify-center bg-primary hover:bg-secondary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg"
-                  >
-                    {slide.cta}
-                    <FiArrowRight className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
-                  </Link>
-                  <Link
-                    href="/categories"
-                    className="inline-flex items-center justify-center bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105"
-                  >
-                    Browse All
-                  </Link>
-                </div>
+              <div
+                className="flex flex-col sm:flex-row gap-3 sm:gap-4 animate-fade-in-up animation-delay-800"
+                key={`cta-${currentSlide}`}
+              >
+                <Link
+                  href={slide.ctaLink}
+                  className="group/btn inline-flex items-center justify-center bg-primary hover:bg-secondary text-white px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-bold text-base sm:text-lg transition-all duration-300 transform hover:scale-105 hover:shadow-2xl shadow-lg"
+                >
+                  {slide.cta}
+                  <FiArrowRight className="ml-2 group-hover/btn:translate-x-1 transition-transform" />
+                </Link>
+                <Link
+                  href="/categories"
+                  className="inline-flex items-center justify-center bg-white/10 backdrop-blur-sm hover:bg-white/20 text-white border-2 border-white/30 px-6 sm:px-8 py-3 sm:py-4 rounded-lg font-semibold text-base sm:text-lg transition-all duration-300 transform hover:scale-105"
+                >
+                  Browse All
+                </Link>
               </div>
             </div>
           </div>
         </div>
-      ))}
+      </div>
 
       {/* Navigation Arrows */}
       <button
