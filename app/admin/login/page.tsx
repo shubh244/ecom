@@ -18,9 +18,10 @@ export default function AdminLogin() {
     setLoading(true)
 
     const apiBase = getPublicApiUrl()
+    const loginUrl = `${apiBase}/admin/login`
 
     try {
-      const response = await fetch(`${apiBase}/admin/login`, {
+      const response = await fetch(loginUrl, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -28,17 +29,43 @@ export default function AdminLogin() {
         body: JSON.stringify({ username, password }),
       })
 
-      const data = await response.json()
+      const text = await response.text()
+      let data: {
+        success?: boolean
+        message?: string
+        token?: string
+        user?: unknown
+        errors?: Record<string, string[]>
+      } = {}
 
-      if (data.success) {
+      try {
+        data = text ? JSON.parse(text) : {}
+      } catch {
+        setError(
+          `The server did not return JSON (${response.status}). Check Vercel env NEXT_PUBLIC_API_URL — it must be your API base ending in /api (currently: ${apiBase}), not the storefront URL.`
+        )
+        return
+      }
+
+      if (!response.ok) {
+        if (response.status === 422 && data.errors) {
+          const first = Object.values(data.errors).flat()[0]
+          setError(typeof first === 'string' ? first : data.message || 'Validation failed')
+        } else {
+          setError(data.message || `Login failed (${response.status})`)
+        }
+        return
+      }
+
+      if (data.success && data.token) {
         localStorage.setItem('admin_token', data.token)
-        localStorage.setItem('admin_user', JSON.stringify(data.user))
+        localStorage.setItem('admin_user', JSON.stringify(data.user ?? {}))
         router.push('/admin/dashboard')
       } else {
         setError(data.message || 'Login failed')
       }
-    } catch (err) {
-      setError('Failed to connect to server')
+    } catch {
+      setError('Network error. Check your connection, CORS on the API, and NEXT_PUBLIC_API_URL.')
     } finally {
       setLoading(false)
     }

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next'
 import HomeClient from './HomeClient'
-import { SITE_NAME, getSiteUrl, siteSeo } from '@/lib/site'
+import { SITE_NAME, getSiteUrl, siteSeo, getOgImageUrl } from '@/lib/site'
 
 const siteUrl = getSiteUrl()
 
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: siteSeo.homeTitle,
     description: siteSeo.homeDescription,
-    images: [{ url: siteSeo.ogImage, width: 512, height: 512, alt: SITE_NAME }],
+    images: [{ url: getOgImageUrl(), width: 512, height: 512, alt: SITE_NAME }],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteSeo.homeTitle,
     description: siteSeo.homeDescription,
-    images: [siteSeo.ogImage],
+    images: [getOgImageUrl()],
   },
 }
 

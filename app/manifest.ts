@@ -1,7 +1,10 @@
 import type { MetadataRoute } from 'next'
-import { SITE_NAME, siteSeo } from '@/lib/site'
+import { SITE_NAME, siteSeo, getOgImageUrl } from '@/lib/site'
 
 export default function manifest(): MetadataRoute.Manifest {
+  const iconSrc = getOgImageUrl()
+  const isSvg = iconSrc.endsWith('.svg')
+
   return {
     name: SITE_NAME,
     short_name: 'SJB Wood',
@@ -14,9 +17,9 @@ export default function manifest(): MetadataRoute.Manifest {
     categories: ['shopping', 'furniture'],
     icons: [
       {
-        src: 'https://shreejeeblessingwood.in/sjbw-logo.png',
-        sizes: '192x192',
-        type: 'image/png',
+        src: iconSrc,
+        sizes: isSvg ? 'any' : '192x192',
+        type: isSvg ? 'image/svg+xml' : 'image/png',
         purpose: 'any',
       },
     ],

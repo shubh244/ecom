@@ -7,7 +7,7 @@ import MobileBottomNav from '@/components/MobileBottomNav'
 import AppMain from '@/components/AppMain'
 import { CartProvider } from '@/context/CartContext'
 import { ToastProvider } from '@/context/ToastContext'
-import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd } from '@/lib/site'
+import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd, getOgImageUrl } from '@/lib/site'
 
 const siteUrl = getSiteUrl()
 
@@ -30,13 +30,13 @@ export const metadata: Metadata = {
     siteName: SITE_NAME,
     title: siteSeo.homeTitle,
     description: siteSeo.defaultDescription,
-    images: [{ url: siteSeo.ogImage, width: 512, height: 512, alt: SITE_NAME }],
+    images: [{ url: getOgImageUrl(), width: 512, height: 512, alt: SITE_NAME }],
   },
   twitter: {
     card: 'summary_large_image',
     title: siteSeo.homeTitle,
     description: siteSeo.defaultDescription,
-    images: [siteSeo.ogImage],
+    images: [getOgImageUrl()],
   },
   robots: {
     index: true,

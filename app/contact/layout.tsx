@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SITE_NAME, getSiteUrl, siteSeo } from '@/lib/site'
+import { SITE_NAME, getSiteUrl, siteSeo, getOgImageUrl } from '@/lib/site'
 
 const siteUrl = getSiteUrl()
 
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     url: `${siteUrl}/contact`,
     siteName: SITE_NAME,
     locale: 'en_IN',
-    images: [{ url: siteSeo.ogImage, alt: SITE_NAME }],
+    images: [{ url: getOgImageUrl(), alt: SITE_NAME }],
   },
 }
 

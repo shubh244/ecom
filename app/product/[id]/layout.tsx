@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SITE_NAME, getSiteUrl, siteSeo, buildProductMetaDescription } from '@/lib/site'
+import { SITE_NAME, getSiteUrl, siteSeo, buildProductMetaDescription, getOgImageUrl } from '@/lib/site'
 import { fetchProductForMeta } from '@/lib/seo-api'
 
 type Props = { children: React.ReactNode; params: { id: string } }
@@ -32,13 +32,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       locale: 'en_IN',
       images: product.image
         ? [{ url: product.image, alt: product.name }]
-        : [{ url: siteSeo.ogImage, alt: SITE_NAME }],
+        : [{ url: getOgImageUrl(), alt: SITE_NAME }],
     },
     twitter: {
       card: 'summary_large_image',
       title: product.name,
       description,
-      images: product.image ? [product.image] : [siteSeo.ogImage],
+      images: product.image ? [product.image] : [getOgImageUrl()],
     },
   }
 }

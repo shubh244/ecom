@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { SITE_NAME, getSiteUrl, siteSeo } from '@/lib/site'
+import { SITE_NAME, getSiteUrl, siteSeo, getOgImageUrl } from '@/lib/site'
 import { fetchCategoryBySlugForMeta } from '@/lib/seo-api'
 
 type Props = { children: React.ReactNode; params: { slug: string } }
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       card: 'summary_large_image',
       title: `${title} | ${SITE_NAME}`,
       description,
-      images: [siteSeo.ogImage],
+      images: [getOgImageUrl()],
     },
   }
 }

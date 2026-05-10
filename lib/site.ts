@@ -24,6 +24,33 @@ export function getPublicApiUrl(): string {
   return base.replace(/\/$/, '')
 }
 
+/**
+ * Logo image URLs to try in order (remote hosting can break after DNS moves).
+ * Set NEXT_PUBLIC_LOGO_URL to a stable URL if needed.
+ */
+export function getLogoCandidates(): string[] {
+  const env = process.env.NEXT_PUBLIC_LOGO_URL?.trim()
+  const site = getSiteUrl()
+  const ordered: string[] = []
+  const add = (u?: string) => {
+    if (u && !ordered.includes(u)) ordered.push(u)
+  }
+  add(env)
+  add(`${site}/sjbw-logo.png`)
+  add('https://www.shreejeeblessingwood.in/sjbw-logo.png')
+  add('https://shreejeeblessingwood.in/sjbw-logo.png')
+  add('/brand-mark.svg')
+  return ordered
+}
+
+/** Absolute URL for Open Graph / JSON-LD logo fields. */
+export function getOgImageUrl(): string {
+  for (const u of getLogoCandidates()) {
+    if (u.startsWith('http://') || u.startsWith('https://')) return u
+  }
+  return `${getSiteUrl()}/brand-mark.svg`
+}
+
 export const siteSeo = {
   homeTitle: `${SITE_NAME} | Buy Furniture in Delhi, NCR & Pan India`,
   homeDescription:
@@ -52,7 +79,8 @@ export const siteSeo = {
     'beds sofas dining online',
     'home furniture Delhi',
   ],
-  ogImage: 'https://shreejeeblessingwood.in/sjbw-logo.png',
+  /** @deprecated Prefer getOgImageUrl() so URL stays in sync with logo fallbacks. */
+  ogImage: 'https://www.shreejeeblessingwood.in/sjbw-logo.png',
 } as const
 
 export function buildProductMetaDescription(productName: string, excerpt?: string | null): string {
@@ -71,7 +99,7 @@ export function organizationJsonLd() {
         '@id': `${url}/#organization`,
         name: SITE_NAME,
         url,
-        logo: siteSeo.ogImage,
+        logo: getOgImageUrl(),
         sameAs: ['https://shreejeeblessingwood.in'],
         contactPoint: {
           '@type': 'ContactPoint',
@@ -98,7 +126,7 @@ export function organizationJsonLd() {
         '@type': 'FurnitureStore',
         '@id': `${url}/#store`,
         name: SITE_NAME,
-        image: siteSeo.ogImage,
+        image: getOgImageUrl(),
         url,
         telephone: ['+91-8467082350', '+91-9760232667'],
         email: 'info@shreejeeblessingwood.in',

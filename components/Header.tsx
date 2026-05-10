@@ -1,14 +1,18 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { FiMenu, FiX, FiShoppingCart, FiUser, FiHeart, FiSearch } from 'react-icons/fi'
 import { categories } from '@/lib/data'
-import { SITE_NAME } from '@/lib/site'
+import { SITE_NAME, getLogoCandidates } from '@/lib/site'
 import { useCart } from '@/context/CartContext'
 import CartModal from './CartModal'
 
 export default function Header() {
+  const logoCandidates = useMemo(() => getLogoCandidates(), [])
+  const [logoIndex, setLogoIndex] = useState(0)
+  const logoSrc = logoCandidates[logoIndex] ?? '/brand-mark.svg'
+
   const [isMenuOpen, setIsMenuOpen] = useState(false)
   const [isCategoryMenuOpen, setIsCategoryMenuOpen] = useState(false)
   const [isCartOpen, setIsCartOpen] = useState(false)
@@ -114,9 +118,12 @@ export default function Header() {
             </button>
             <a href="/" className="flex items-center gap-2 sm:gap-3 min-w-0">
               <img
-                src="https://shreejeeblessingwood.in/sjbw-logo.png"
+                src={logoSrc}
                 alt={`${SITE_NAME} logo`}
                 className="h-9 w-auto sm:h-12 shrink-0"
+                onError={() =>
+                  setLogoIndex((i: number) => (i + 1 < logoCandidates.length ? i + 1 : i))
+                }
               />
               <span className="text-lg sm:text-2xl font-bold text-primary hidden sm:block truncate max-w-[10rem] md:max-w-none">
                 {SITE_NAME}
