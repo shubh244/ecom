@@ -5,7 +5,12 @@ import { apiClient } from '@/lib/api'
 import { Product } from '@/lib/types'
 import ProductCard from './ProductCard'
 
-export default function HotOffers() {
+interface HotOffersProps {
+  /** When true, show page title, loading state, and empty message (used on /hot-offers). */
+  standalone?: boolean
+}
+
+export default function HotOffers({ standalone = false }: HotOffersProps) {
   const [products, setProducts] = useState<Product[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -25,10 +30,27 @@ export default function HotOffers() {
   }, [])
 
   if (loading) {
+    if (standalone) {
+      return (
+        <div className="min-h-[40vh] flex items-center justify-center bg-gradient-to-r from-red-50 via-orange-50 to-red-50">
+          <p className="text-gray-600">Loading offers…</p>
+        </div>
+      )
+    }
     return null
   }
 
   if (products.length === 0) {
+    if (standalone) {
+      return (
+        <div className="min-h-[40vh] flex flex-col items-center justify-center bg-gray-50 px-4">
+          <p className="text-gray-600 text-center max-w-md">
+            <span className="font-semibold text-gray-800 block mb-2">No offers at the moment.</span>
+            Check back soon or browse our categories from the menu.
+          </p>
+        </div>
+      )
+    }
     return null
   }
 

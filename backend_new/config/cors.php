@@ -14,7 +14,13 @@ return [
         },
         explode(',', env(
             'CORS_ALLOWED_ORIGINS',
-            'http://localhost:3000,http://127.0.0.1:3000'
+            implode(',', [
+                'http://localhost:3000',
+                'http://127.0.0.1:3000',
+                'https://darkslategrey-gazelle-896289.hostingersite.com',
+                'https://www.shreejeeblessingwood.in',
+                'https://shreejeeblessingwood.in',
+            ])
         ))
     ))),
     'allowed_origins_patterns' => [],
