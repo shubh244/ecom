@@ -17,6 +17,7 @@
 
 # misc
 .DS_Store
+backend_new-deploy.zip
 *.pem
 
 # debug

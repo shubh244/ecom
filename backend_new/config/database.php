@@ -98,6 +98,30 @@ return [
             'sslmode' => env('DB_SSLMODE', 'prefer'),
         ],
 
+        /*
+        |--------------------------------------------------------------------------
+        | Supabase / Postgres (read-only source for db:import-from-supabase)
+        |--------------------------------------------------------------------------
+        |
+        | Set IMPORT_SOURCE_DB_* in .env while running the one-time import.
+        | Default connection must remain mysql (Hostinger target).
+        |
+        */
+        'import_source' => [
+            'driver' => 'pgsql',
+            'url' => env('IMPORT_SOURCE_DB_URL'),
+            'host' => env('IMPORT_SOURCE_DB_HOST', '127.0.0.1'),
+            'port' => env('IMPORT_SOURCE_DB_PORT', '5432'),
+            'database' => env('IMPORT_SOURCE_DB_DATABASE', 'postgres'),
+            'username' => env('IMPORT_SOURCE_DB_USERNAME', 'postgres'),
+            'password' => env('IMPORT_SOURCE_DB_PASSWORD', ''),
+            'charset' => env('IMPORT_SOURCE_DB_CHARSET', 'utf8'),
+            'prefix' => '',
+            'prefix_indexes' => true,
+            'search_path' => env('IMPORT_SOURCE_DB_SCHEMA', 'public'),
+            'sslmode' => env('IMPORT_SOURCE_DB_SSLMODE', 'require'),
+        ],
+
         'sqlsrv' => [
             'driver' => 'sqlsrv',
             'url' => env('DB_URL', env('DATABASE_URL')),
