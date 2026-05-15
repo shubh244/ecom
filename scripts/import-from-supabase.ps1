@@ -21,11 +21,15 @@ if (-not (Test-Path $envFile)) {
 }
 
 $content = Get-Content $envFile -Raw
-if ($content -notmatch "IMPORT_SOURCE_DB_URL\s*=\s*postgres") {
+$hasUrl = $content -match "IMPORT_SOURCE_DB_URL\s*=\s*postgres"
+$hasSplit = $content -match "IMPORT_SOURCE_DB_HOST\s*=\s*db\." -and $content -match "IMPORT_SOURCE_DB_PASSWORD\s*=\s*\S+"
+if (-not $hasUrl -and -not $hasSplit) {
     Write-Host ""
-    Write-Host "Add your Supabase URI to .env:" -ForegroundColor Yellow
-    Write-Host "  IMPORT_SOURCE_DB_URL=postgresql://postgres.[ref]:[PASSWORD]@aws-0-[region].pooler.supabase.com:5432/postgres?sslmode=require"
-    Write-Host "  (Supabase Dashboard -> Project Settings -> Database -> Connection string)"
+    Write-Host "Set Supabase credentials in backend_new\.env:" -ForegroundColor Yellow
+    Write-Host "  IMPORT_SOURCE_DB_HOST=db.zdfjdgthqjlpssubsvzf.supabase.co"
+    Write-Host "  IMPORT_SOURCE_DB_USERNAME=postgres"
+    Write-Host "  IMPORT_SOURCE_DB_PASSWORD=your_supabase_database_password"
+    Write-Host "  (Dashboard -> Project Settings -> Database -> Database password)"
     Write-Host ""
     exit 1
 }
