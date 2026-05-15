@@ -24,9 +24,11 @@ C) DATABASE (choose one path)
    4. Run: scripts\import-from-supabase.ps1
    5. Remove IMPORT_SOURCE_DB_* from .env
 
-   PATH 2 — phpMyAdmin only
-   1. Export from Supabase via Table Editor / external tool as CSV, or use PATH 1 once
-   2. phpMyAdmin → u274811071_shreejee → Import backup.sql
+   PATH 2 — SQL file (works from Windows without Remote MySQL)
+   1. In backend_new\.env set IMPORT_SOURCE_DB_PASSWORD (Supabase)
+   2. Run: php artisan db:export-mysql-for-hostinger
+   3. On Hostinger SSH first: php artisan migrate --force
+   4. phpMyAdmin → u274811071_shreejee → Import database/exports/hostinger-data.sql
 
 D) VERIFY
    https://api.darkslategrey-gazelle-896289.hostingersite.com/api/categories  → JSON
