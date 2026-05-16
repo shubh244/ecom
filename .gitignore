@@ -19,6 +19,7 @@
 .DS_Store
 backend_new-deploy.zip
 backend_new-deploy.tar.gz
+HOSTINGER_UPLOAD_THIS/
 *.pem
 
 # debug
