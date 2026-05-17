@@ -2,6 +2,16 @@
 
 use Illuminate\Support\Facades\Route;
 
+Route::get('/storage/{path}', function (string $path) {
+    $path = str_replace(['..', '\\'], '', $path);
+    $full = storage_path('app/public/'.$path);
+    if (! is_file($full)) {
+        abort(404);
+    }
+
+    return response()->file($full);
+})->where('path', '.*');
+
 Route::get('/', function () {
     $frontendUrl = rtrim((string) env('FRONTEND_URL', ''), '/');
     $currentOrigin = rtrim(request()->getSchemeAndHttpHost(), '/');

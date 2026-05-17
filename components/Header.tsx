@@ -120,7 +120,11 @@ export default function Header() {
               <img
                 src={logoSrc}
                 alt={`${SITE_NAME} logo`}
+                width={48}
+                height={48}
                 className="h-9 w-auto sm:h-12 shrink-0"
+                loading="eager"
+                decoding="async"
                 onError={() =>
                   setLogoIndex((i: number) => (i + 1 < logoCandidates.length ? i + 1 : i))
                 }

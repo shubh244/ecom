@@ -5,8 +5,9 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\Product;
 use App\Models\Category;
-use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class ProductController extends Controller
 {
@@ -46,8 +47,19 @@ class ProductController extends Controller
             'image' => 'required|file|image|mimes:jpeg,png,jpg,gif,webp|max:10240',
         ]);
 
-        $path = $request->file('image')->store('products/'.$product->id, 'public');
-        $url = asset('storage/'.$path);
+        $file = $request->file('image');
+        $ext = $file->getClientOriginalExtension() ?: 'jpg';
+        $filename = Str::uuid().'.'.$ext;
+        $relative = 'uploads/products/'.$product->id;
+
+        $dir = public_path($relative);
+        if (! is_dir($dir)) {
+            mkdir($dir, 0755, true);
+        }
+
+        $file->move($dir, $filename);
+
+        $url = rtrim(config('app.url'), '/').'/'.$relative.'/'.$filename;
 
         $product->update(['image' => $url]);
 

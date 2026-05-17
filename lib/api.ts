@@ -34,23 +34,27 @@ class ApiClient {
       const response = await fetch(url, config)
       
       if (!response.ok) {
-        let msg = response.statusText
+        let msg = `${response.status} ${response.statusText || 'HTTP Error'}`
         try {
           const errBody = await response.json()
           if (typeof errBody.message === 'string' && errBody.message) {
-            msg = errBody.message
+            msg = `${msg}: ${errBody.message}`
           }
         } catch {
           /* ignore */
         }
-        throw new Error(msg)
+        throw new Error(`${msg} — ${url}`)
       }
 
       const data: ApiResponse<T> = await response.json()
       return data.data
     } catch (error) {
-      console.error('API Request failed:', error)
-      throw error
+      const hint =
+        error instanceof TypeError
+          ? ` (network/CORS/wrong API URL — base is "${this.baseUrl}")`
+          : ''
+      console.error(`API Request failed${hint}:`, url, error)
+      throw error instanceof Error ? error : new Error(String(error))
     }
   }
 
