@@ -87,7 +87,7 @@ export default function Header() {
 
   return (
     <header
-      className="bg-white shadow-md sticky top-0 z-50 supports-[padding:max(0px)]:pt-[max(0px,env(safe-area-inset-top))]"
+      className="bg-white shadow-md sticky top-0 z-50 pt-[env(safe-area-inset-top,0px)]"
     >
       {/* Top Bar — compact on phones (bottom nav covers primary actions) */}
       <div className="hidden sm:block bg-gray-800 text-white py-2">

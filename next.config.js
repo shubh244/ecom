@@ -16,6 +16,21 @@ const nextConfig = {
   compiler: {
     removeConsole: process.env.NODE_ENV === 'production' ? { exclude: ['error'] } : false,
   },
+  async headers() {
+    return [
+      {
+        source: '/_next/static/css/:path*',
+        headers: [
+          { key: 'Content-Type', value: 'text/css; charset=utf-8' },
+          { key: 'X-Content-Type-Options', value: 'nosniff' },
+        ],
+      },
+      {
+        source: '/_next/static/chunks/:path*',
+        headers: [{ key: 'X-Content-Type-Options', value: 'nosniff' }],
+      },
+    ]
+  },
 }
 
 module.exports = nextConfig

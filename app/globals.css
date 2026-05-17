@@ -139,6 +139,19 @@ a {
   opacity: 0;
 }
 
+/* iOS: with Reduce Motion, hero text stayed invisible (opacity: 0) */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-in-up,
+  .animation-delay-200,
+  .animation-delay-400,
+  .animation-delay-600,
+  .animation-delay-800 {
+    animation: none !important;
+    opacity: 1 !important;
+    transform: none !important;
+  }
+}
+
 /* Gradient Shift Animation */
 @keyframes gradient-shift {
   0%, 100% {

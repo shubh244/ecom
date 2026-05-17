@@ -7,6 +7,7 @@ import MobileBottomNav from '@/components/MobileBottomNav'
 import AppMain from '@/components/AppMain'
 import { CartProvider } from '@/context/CartContext'
 import { ToastProvider } from '@/context/ToastContext'
+import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd, getOgImageUrl } from '@/lib/site'
 
 const siteUrl = getSiteUrl()
@@ -50,6 +51,13 @@ export const metadata: Metadata = {
     statusBarStyle: 'default',
   },
   applicationName: SITE_NAME,
+  icons: {
+    icon: [
+      { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
+      { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
+    ],
+    apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+  },
   other: {
     'geo.region': 'IN-DL',
     'geo.placename': 'New Delhi',
@@ -76,6 +84,7 @@ export default function RootLayout({
   return (
     <html lang="en-IN">
       <body className="antialiased">
+        <ServiceWorkerCleanup />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <ToastProvider>
           <CartProvider>
