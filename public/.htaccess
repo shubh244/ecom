@@ -1,4 +1,4 @@
-# Hostinger / Apache — MIME types + cache rules (fixes intermittent unstyled HTML)
+# Hostinger / Apache — MIME types + cache (prevents unstyled HTML after deploy)
 
 <IfModule mod_mime.c>
   AddType text/css .css
@@ -8,29 +8,25 @@
 </IfModule>
 
 <IfModule mod_headers.c>
-  # HTML documents: never cache for 1 year (stale HTML references deleted /_next/static/css/*.css)
+  # HTML: never cache 1 year at CDN (stale HTML → wrong /_next/static/css hash → no styles)
   <FilesMatch "\.(html|htm)$">
     Header set Cache-Control "no-cache, no-store, must-revalidate"
     Header set Pragma "no-cache"
     Header set Expires "0"
   </FilesMatch>
 
-  # Hashed Next.js assets: long cache is safe
-  <FilesMatch "^(_next/static|_next/static/.+)">
-    Header set Cache-Control "public, max-age=31536000, immutable"
-  </FilesMatch>
-
   <FilesMatch "\.css$">
     Header set Content-Type "text/css; charset=UTF-8"
     Header set X-Content-Type-Options "nosniff"
+    Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 
   <FilesMatch "\.js$">
     Header set X-Content-Type-Options "nosniff"
+    Header set Cache-Control "public, max-age=31536000, immutable"
   </FilesMatch>
 </IfModule>
 
-# Retire legacy service worker (was causing reload races and stale caches)
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteRule ^sw\.js$ - [G,L]

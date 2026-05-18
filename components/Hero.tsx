@@ -53,19 +53,6 @@ export default function Hero() {
   const [isAutoPlaying, setIsAutoPlaying] = useState(true)
 
   useEffect(() => {
-    const href = slides[0]?.image
-    if (!href) return
-    const link = document.createElement('link')
-    link.rel = 'preload'
-    link.as = 'image'
-    link.href = href
-    document.head.appendChild(link)
-    return () => {
-      document.head.removeChild(link)
-    }
-  }, [slides])
-
-  useEffect(() => {
     if (!isAutoPlaying) return
 
     const timer = setInterval(() => {

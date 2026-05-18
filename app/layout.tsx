@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
 import Header from '@/components/Header'
 import AppFooter from '@/components/AppFooter'
@@ -77,7 +78,6 @@ export const viewport: Viewport = {
   themeColor: '#8B4513',
 }
 
-/** Do not cache HTML at the edge for 1 year — avoids stale page → missing CSS hash after deploy. */
 export const revalidate = 0
 
 export default function RootLayout({
@@ -87,11 +87,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
-      <head>
-        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
-        <script dangerouslySetInnerHTML={{ __html: inlineHeadScripts }} />
-      </head>
       <body className="antialiased">
+        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
+        <Script id="css-bootstrap" strategy="beforeInteractive">
+          {inlineHeadScripts}
+        </Script>
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <ToastProvider>
           <CartProvider>
