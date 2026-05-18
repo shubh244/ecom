@@ -7,8 +7,9 @@ import MobileBottomNav from '@/components/MobileBottomNav'
 import AppMain from '@/components/AppMain'
 import { CartProvider } from '@/context/CartContext'
 import { ToastProvider } from '@/context/ToastContext'
-import ServiceWorkerCleanup from '@/components/ServiceWorkerCleanup'
 import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd, getOgImageUrl } from '@/lib/site'
+import { criticalCss } from '@/lib/criticalCss'
+import { inlineHeadScripts } from '@/lib/inlineHeadScripts'
 
 const siteUrl = getSiteUrl()
 
@@ -76,6 +77,9 @@ export const viewport: Viewport = {
   themeColor: '#8B4513',
 }
 
+/** Do not cache HTML at the edge for 1 year — avoids stale page → missing CSS hash after deploy. */
+export const revalidate = 0
+
 export default function RootLayout({
   children,
 }: {
@@ -83,8 +87,11 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en-IN">
+      <head>
+        <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
+        <script dangerouslySetInnerHTML={{ __html: inlineHeadScripts }} />
+      </head>
       <body className="antialiased">
-        <ServiceWorkerCleanup />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <ToastProvider>
           <CartProvider>
@@ -99,4 +106,3 @@ export default function RootLayout({
     </html>
   )
 }
-
