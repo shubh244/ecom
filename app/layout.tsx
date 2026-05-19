@@ -10,6 +10,7 @@ import { CartProvider } from '@/context/CartContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { SITE_NAME, getSiteUrl, siteSeo, organizationJsonLd, getOgImageUrl } from '@/lib/site'
 import { criticalCss } from '@/lib/criticalCss'
+import CssRecovery from '@/components/CssRecovery'
 import { inlineHeadScripts } from '@/lib/inlineHeadScripts'
 
 const siteUrl = getSiteUrl()
@@ -95,6 +96,7 @@ export default function RootLayout({
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />
         <ToastProvider>
           <CartProvider>
+            <CssRecovery />
             <Header />
             <AppMain>{children}</AppMain>
             <AppFooter />
