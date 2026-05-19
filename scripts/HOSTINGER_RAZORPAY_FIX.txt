@@ -1,0 +1,32 @@
+RAZORPAY SHOWS UPI QR INSTEAD OF CHECKOUT?
+============================================
+
+Your storefront is fine. The API must read Razorpay keys from the correct .env.
+
+1) Put keys in the LARAVEL API folder (next to artisan), NOT only public_html/.env:
+
+   public_html/api/.env
+
+   RAZORPAY_KEY_ID=rzp_test_xxxxx
+   RAZORPAY_KEY_SECRET=your_secret
+
+2) SSH or Hostinger Terminal:
+
+   cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html/api
+   php artisan config:clear
+   composer show razorpay/razorpay
+
+3) Test in browser:
+
+   https://paleturquoise-horse-925665.hostingersite.com/api/payment/config
+
+   Expected: "razorpay_enabled": true
+
+   If 404: upload latest backend_new (PaymentConfigController + routes).
+
+4) Storefront env (shreejeeblessingwood.in Git → Environment variables):
+
+   NEXT_PUBLIC_API_URL=https://paleturquoise-horse-925665.hostingersite.com/api
+   NEXT_PUBLIC_RAZORPAY_KEY_ID=rzp_test_xxxxx   (same Key ID, optional but helps UI)
+
+5) Redeploy BOTH sites after changes.
