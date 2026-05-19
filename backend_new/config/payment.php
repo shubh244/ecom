@@ -1,7 +1,7 @@
 <?php
 
-$keyId = env('RAZORPAY_KEY_ID');
-$keySecret = env('RAZORPAY_KEY_SECRET');
+$keyId = trim((string) (env('RAZORPAY_KEY_ID') ?: env('RAZORPAY_KEY') ?: ''));
+$keySecret = trim((string) (env('RAZORPAY_KEY_SECRET') ?: env('RAZORPAY_SECRET') ?: ''));
 
 return [
     'upi_vpa' => env('MERCHANT_UPI_VPA', 'merchant@upi'),

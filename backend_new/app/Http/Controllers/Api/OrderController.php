@@ -25,6 +25,7 @@ class OrderController extends Controller
             'items.*.product_id' => 'required|exists:products,id',
             'items.*.quantity' => 'required|integer|min:1',
             'notes' => 'nullable|string',
+            'payment_method' => 'nullable|in:razorpay,upi',
         ]);
 
         // Calculate totals
@@ -75,9 +76,12 @@ class OrderController extends Controller
             ]);
         }
 
-        $razorpayEnabled = (bool) config('payment.razorpay_enabled');
+        $razorpayConfigured = (bool) config('payment.razorpay_enabled');
+        $requestedMethod = $validated['payment_method'] ?? null;
+        $useRazorpay = $razorpayConfigured
+            && ($requestedMethod === null || $requestedMethod === 'razorpay');
 
-        if ($razorpayEnabled) {
+        if ($useRazorpay) {
             $payment = OrderPayment::create([
                 'order_id' => $order->id,
                 'status' => 'pending',
@@ -94,8 +98,16 @@ class OrderController extends Controller
                     'order' => $order->load('items.product'),
                     'payment' => $payment,
                     'razorpay_enabled' => true,
+                    'payment_method' => 'razorpay',
                 ],
             ], 201);
+        }
+
+        if ($requestedMethod === 'razorpay' && ! $razorpayConfigured) {
+            return response()->json([
+                'success' => false,
+                'message' => 'Razorpay is not configured on the server. Add RAZORPAY_KEY_ID and RAZORPAY_KEY_SECRET to the API .env, then run php artisan config:clear.',
+            ], 503);
         }
 
         $upiVpa = (string) config('payment.upi_vpa');
@@ -124,6 +136,7 @@ class OrderController extends Controller
                 'order' => $order->load('items.product'),
                 'payment' => $payment,
                 'razorpay_enabled' => false,
+                'payment_method' => 'upi',
                 'upi_pay_url' => $upiUrl,
                 'merchant_upi_vpa' => $upiVpa,
             ],

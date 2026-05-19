@@ -57,10 +57,14 @@ class OrderPaymentController extends Controller
             ->first();
 
         if (! $payment) {
-            return response()->json([
-                'success' => false,
-                'message' => 'No pending Razorpay payment for this order.',
-            ], 422);
+            $payment = OrderPayment::create([
+                'order_id' => $order->id,
+                'status' => 'pending',
+                'amount' => $order->total_amount,
+                'method' => 'razorpay',
+                'currency' => 'INR',
+                'upi_pay_url' => null,
+            ]);
         }
 
         try {

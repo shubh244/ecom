@@ -7,6 +7,7 @@ use App\Http\Controllers\Api\CategoryController;
 use App\Http\Controllers\Api\CartController;
 use App\Http\Controllers\Api\OrderController;
 use App\Http\Controllers\Api\OrderPaymentController;
+use App\Http\Controllers\Api\PaymentConfigController;
 
 /*
 |--------------------------------------------------------------------------
@@ -34,6 +35,8 @@ Route::get('/health', function () {
         'status' => 'ok',
     ]);
 });
+
+Route::get('/payment/config', [PaymentConfigController::class, 'show']);
 
 // Products
 Route::get('/products', [ProductController::class, 'index']);
