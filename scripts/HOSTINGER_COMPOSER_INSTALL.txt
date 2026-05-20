@@ -1,0 +1,44 @@
+Hostinger — install Laravel vendor/ (composer failed)
+======================================================
+
+Error you saw:
+  Could not open input file: /usr/bin/composer
+
+On Hostinger, Composer is usually here (NOT /usr/bin/composer):
+  /usr/local/bin/composer2
+
+Copy-paste in Browser Terminal (API site):
+------------------------------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+
+# 1) Check PHP 8.2
+/opt/alt/php82/usr/bin/php -v
+
+# 2) Find composer (optional)
+which composer2
+ls -la /usr/local/bin/composer2
+
+# 3) Install dependencies (2–5 min)
+/opt/alt/php82/usr/bin/php /usr/local/bin/composer2 install --no-dev --optimize-autoloader
+
+# 4) Confirm vendor exists
+ls -la vendor/autoload.php
+
+# 5) Laravel cache + permissions
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan route:clear
+chmod -R 775 storage bootstrap/cache
+
+# 6) Test routes
+/opt/alt/php82/usr/bin/php artisan route:list | grep health
+
+Browser test:
+  https://paleturquoise-horse-925665.hostingersite.com/api/health
+
+If composer2 also missing — install composer.phar locally:
+---------------------------------------------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+curl -sS https://getcomposer.org/installer | /opt/alt/php82/usr/bin/php
+/opt/alt/php82/usr/bin/php composer.phar install --no-dev --optimize-autoloader
+
+After vendor/ exists, /api/health should return JSON (if .htaccess or document root is fixed).

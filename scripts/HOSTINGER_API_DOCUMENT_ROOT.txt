@@ -1,0 +1,51 @@
+FIX: https://paleturquoise-horse-925665.hostingersite.com/api/health
+      shows "This page does not exist"
+================================================================
+
+Your Laravel folders in public_html are CORRECT (app, routes, public, artisan).
+The web server is NOT using public/index.php — so /api/* never runs.
+
+OPTION A (BEST) — Change document root in hPanel
+------------------------------------------------
+1. hPanel → Websites
+2. Click paleturquoise-horse-925665.hostingersite.com (API site, NOT storefront)
+3. Domains  (or Advanced → Domain configuration)
+4. Find "Document root" / "Website root"
+5. Change FROM:  public_html
+           TO:    public_html/public
+6. Save. Wait 2–5 minutes.
+
+Test: https://paleturquoise-horse-925665.hostingersite.com/api/health
+      → JSON: {"success":true,"status":"ok"}
+
+OPTION B — If hPanel will NOT let you change document root
+----------------------------------------------------------
+File Manager → public_html → create or edit file named:  .htaccess
+
+Paste ONLY this (from backend_new/public_html-root.htaccess.example):
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
+
+Save. Then test /api/health again.
+
+OPTION C — Terminal (after A or B)
+----------------------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+
+ls -la artisan public/index.php vendor/autoload.php
+
+# vendor must exist:
+/opt/alt/php82/usr/bin/php /usr/local/bin/composer2 install --no-dev --optimize-autoloader
+# Error "Could not open /usr/bin/composer" → use composer2 line above
+
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan route:list | head -20
+
+WRONG layouts (do not use)
+--------------------------
+public_html/api/artisan with root public_html        → broken
+Document root = public_html (no /public)           → "page does not exist"
+Missing vendor/                                    → 500 or blank page

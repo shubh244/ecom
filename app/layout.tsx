@@ -1,5 +1,7 @@
 import type { Metadata, Viewport } from 'next'
+import Script from 'next/script'
 import './globals.css'
+import { cdnCacheBustScript } from '@/lib/cdnCacheBustScript'
 import Header from '@/components/Header'
 import AppFooter from '@/components/AppFooter'
 import WhatsAppButton from '@/components/WhatsAppButton'
@@ -54,10 +56,12 @@ export const metadata: Metadata = {
   applicationName: SITE_NAME,
   icons: {
     icon: [
+      { url: '/favicon.png', sizes: '32x32', type: 'image/png' },
       { url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' },
       { url: '/icons/icon-512.png', sizes: '512x512', type: 'image/png' },
     ],
     apple: [{ url: '/icons/icon-192.png', sizes: '192x192', type: 'image/png' }],
+    shortcut: '/favicon.png',
   },
   other: {
     'geo.region': 'IN-DL',
@@ -88,6 +92,9 @@ export default function RootLayout({
   return (
     <html lang="en-IN">
       <body className="antialiased">
+        <Script id="cdn-cache-bust" strategy="beforeInteractive">
+          {cdnCacheBustScript}
+        </Script>
         <style dangerouslySetInnerHTML={{ __html: criticalCss }} />
         <script dangerouslySetInnerHTML={{ __html: inlineHeadScripts }} />
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: jsonLd }} />

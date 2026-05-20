@@ -1,0 +1,78 @@
+URGENT — API DOWN (503) — THIS BREAKS CHECKOUT & RAZORPAY
+=========================================================
+
+Right now: https://paleturquoise-horse-925665.hostingersite.com/api
+returns 503 Service Unavailable (not your React code).
+
+Until API is UP again:
+- Products may look OK (cache) but orders/payment fail
+- Razorpay will never open
+- Checkout shows UPI QR fallback
+
+FRONTEND (shreejeeblessingwood.in) is separate — Git repo:
+  https://github.com/shubh244/ecom-storefront  branch: main
+
+BACKEND (Laravel) — File Manager / zip site:
+  paleturquoise-horse-925665.hostingersite.com
+
+STEP 1 — Document root (most common break after zip upload)
+---------------------------------------------------------
+hPanel → Websites → paleturquoise API site → Domains
+Document root MUST be:
+  public_html/api/public
+NOT public_html/api
+NOT public_html
+
+STEP 2 — Folder layout (after extract zip in public_html/api/)
+--------------------------------------------------------------
+public_html/api/artisan          ← must exist
+public_html/api/app/
+public_html/api/public/index.php ← web entry
+public_html/api/.env             ← Laravel env HERE (Razorpay keys)
+
+STEP 3 — .env (copy Razorpay from wrong file if needed)
+-------------------------------------------------------
+If you put keys in public_html/.env only, COPY them to:
+  public_html/api/.env
+
+RAZORPAY_KEY_ID=rzp_test_xxxxx
+RAZORPAY_KEY_SECRET=your_secret
+DB_* = your MySQL credentials
+APP_KEY=base64:...  (must be set)
+
+If DB password has special characters, wrap in quotes:
+DB_PASSWORD="your!pass@word"
+
+STEP 4 — SSH or Hostinger Terminal
+----------------------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html/api
+
+composer install --no-dev --optimize-autoloader
+php artisan key:generate --force   (only if APP_KEY empty)
+php artisan config:clear
+php artisan route:clear
+php artisan migrate --force
+chmod -R 775 storage bootstrap/cache
+
+STEP 5 — Test in browser
+------------------------
+https://paleturquoise-horse-925665.hostingersite.com/api/health
+  → {"success":true,"status":"ok"}
+
+https://paleturquoise-horse-925665.hostingersite.com/api/payment/config
+  → "razorpay_enabled": true
+
+STEP 6 — Storefront env (shreejeeblessingwood.in → Git → Environment)
+---------------------------------------------------------------------
+NEXT_PUBLIC_SITE_URL=https://shreejeeblessingwood.in
+NEXT_PUBLIC_API_URL=https://paleturquoise-horse-925665.hostingersite.com/api
+
+Redeploy storefront after env change.
+
+STEP 7 — If still 503
+---------------------
+hPanel → Advanced → Error logs (or Laravel storage/logs/laravel.log)
+Common: wrong PHP version (use 8.2+), missing vendor/, syntax error in .env
+
+Do NOT upload zip into wrong folder again without extracting so that
+public/index.php is a real file, not a filename like "public\index.php".

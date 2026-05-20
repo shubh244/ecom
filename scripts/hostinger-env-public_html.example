@@ -1,0 +1,35 @@
+# Copy to: public_html/.env  (same folder as artisan)
+# Document root in hPanel MUST be: public_html/public
+
+APP_NAME="Shreejee API"
+APP_ENV=production
+APP_KEY=base64:YOUR_APP_KEY
+APP_DEBUG=false
+APP_URL=https://paleturquoise-horse-925665.hostingersite.com
+
+FRONTEND_URL=https://shreejeeblessingwood.in
+CORS_ALLOWED_ORIGINS=https://shreejeeblessingwood.in,https://www.shreejeeblessingwood.in,http://localhost:3000
+
+DB_CONNECTION=mysql
+DB_HOST=127.0.0.1
+DB_PORT=3306
+DB_DATABASE=u274811071_shreejee
+DB_USERNAME=u274811071_shreejee
+DB_PASSWORD="!Shubh@123"
+
+SESSION_DRIVER=file
+SESSION_LIFETIME=120
+CACHE_STORE=file
+QUEUE_CONNECTION=sync
+FILESYSTEM_DISK=public
+
+RAZORPAY_KEY_ID=rzp_test_SjHUmYV4hjvXzV
+RAZORPAY_KEY_SECRET=your_secret_here
+
+LOG_CHANNEL=stack
+LOG_LEVEL=error
+
+# After saving .env, run in Terminal:
+# cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+# php artisan config:clear
+# php artisan route:clear

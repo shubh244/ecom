@@ -1,0 +1,67 @@
+EMERGENCY — CSS + categories broken (two separate fixes)
+============================================================
+
+PROBLEM A — Frontend (shreejeeblessingwood.in) no CSS on new devices
+--------------------------------------------------------------------
+Cause: Hostinger CDN still serves OLD homepage HTML (css file cf7ff7... deleted).
+Your code deploy does NOT fix this until CDN cache is purged.
+
+FIX A (required):
+1. hPanel → Websites → shreejeeblessingwood.in
+2. Performance / CDN → Purge cache (entire site)
+3. Git → confirm repo ecom-storefront branch main → Redeploy
+4. Environment variables:
+   NEXT_PUBLIC_SITE_URL=https://shreejeeblessingwood.in
+   NEXT_PUBLIC_API_URL=https://paleturquoise-horse-925665.hostingersite.com/api
+5. Phone: open site in Incognito / clear site data
+
+Test: View page source on homepage — CSS link must NOT be cf7ff7c7b9c3cc54.css
+Should be a NEW hash like e1905452... or similar after redeploy.
+
+
+PROBLEM B — API / categories not working (paleturquoise)
+----------------------------------------------------------
+Cause: After tar upload, composer install failed (PHP 8.1).
+Without vendor/, Laravel does not run — you get Hostinger HTML instead of JSON.
+
+FIX B — Terminal (use PHP 8.2 for EVERYTHING):
+
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+
+# 1) Install dependencies with PHP 8.2 (NOT default php/composer)
+/opt/alt/php82/usr/bin/php /usr/bin/composer install --no-dev --optimize-autoloader
+
+If /usr/bin/composer missing, try:
+  which composer
+  /opt/alt/php82/usr/bin/php $(which composer) install --no-dev
+
+# 2) Laravel setup
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan route:clear
+/opt/alt/php82/usr/bin/php artisan storage:link
+chmod -R 775 storage bootstrap/cache
+
+# 3) hPanel → PHP 8.2 or 8.3 for this website
+
+# 4) Document root MUST be:
+public_html/public
+
+# 5) Test in browser (must be JSON, not HTML page):
+https://paleturquoise-horse-925665.hostingersite.com/api/health
+https://paleturquoise-horse-925665.hostingersite.com/api/categories
+https://paleturquoise-horse-925665.hostingersite.com/api/payment/config
+
+
+KEEP your .env (do not delete):
+RAZORPAY_KEY_ID=...
+RAZORPAY_KEY_SECRET=...
+DB_*=...
+
+
+IF composer still shows PHP 8.1 errors:
+---------------------------------------
+Run ONLY with php82 wrapper:
+  /opt/alt/php82/usr/bin/php -v
+  /opt/alt/php82/usr/bin/php /usr/bin/composer -V
+
+Never run plain: composer install   (uses PHP 8.1 on Hostinger CLI)

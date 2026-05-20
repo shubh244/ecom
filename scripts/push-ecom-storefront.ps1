@@ -4,12 +4,19 @@
 $ErrorActionPreference = 'Stop'
 $root = Split-Path $PSScriptRoot -Parent
 $src = Join-Path (Split-Path $root -Parent) 'shreejee-storefront'
-$sync = Join-Path (Split-Path $root -Parent) 'ecom-storefront-sync'
+$parent = Split-Path $root -Parent
+$sync = Join-Path $parent 'ecom-storefront-sync'
+# If sync folder is locked (IDE/terminal), use a timestamped clone instead.
+if (Test-Path $sync) {
+  try { Remove-Item -Recurse -Force $sync -ErrorAction Stop }
+  catch { $sync = Join-Path $parent ("ecom-storefront-sync-" + (Get-Date -Format 'yyyyMMddHHmmss')) }
+}
 
 & (Join-Path $root 'scripts\split-two-repos.ps1') | Out-Null
 
-if (Test-Path $sync) { Remove-Item -Recurse -Force $sync }
-git clone https://github.com/shubh244/ecom-storefront.git $sync
+if (-not (Test-Path (Join-Path $sync '.git'))) {
+  git clone https://github.com/shubh244/ecom-storefront.git $sync
+}
 robocopy $src $sync /E /XD .git node_modules .next /NFL /NDL /NJH /NJS | Out-Null
 if ($LASTEXITCODE -ge 8) { throw "robocopy failed: $LASTEXITCODE" }
 

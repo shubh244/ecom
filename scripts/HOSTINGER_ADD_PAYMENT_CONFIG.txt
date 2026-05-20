@@ -1,0 +1,41 @@
+FIX 404 on /api/payment/config
+=============================
+
+Your server has OLD api.php (no payment/config route).
+Upload 1 new file + edit 1 file in File Manager.
+
+STEP 1 — New file
+-----------------
+Path on server:
+  public_html/app/Http/Controllers/Api/PaymentConfigController.php
+
+Copy entire file from your PC repo:
+  backend_new/app/Http/Controllers/Api/PaymentConfigController.php
+
+STEP 2 — Edit routes/api.php
+----------------------------
+Open: public_html/routes/api.php
+
+A) After other "use App\Http\Controllers..." lines ADD:
+   use App\Http\Controllers\Api\PaymentConfigController;
+
+B) After Route::get('/health', ...); block ADD:
+   Route::get('/payment/config', [PaymentConfigController::class, 'show']);
+
+STEP 3 — Ensure config/payment.php exists
+-----------------------------------------
+Path: public_html/config/payment.php
+(Copy from backend_new/config/payment.php if missing)
+
+STEP 4 — Terminal
+-----------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+/opt/alt/php82/usr/bin/php artisan route:clear
+/opt/alt/php82/usr/bin/php artisan config:clear
+
+STEP 5 — Test browser
+---------------------
+https://paleturquoise-horse-925665.hostingersite.com/api/payment/config
+
+Expected:
+{"success":true,"data":{"razorpay_enabled":true,"razorpay_key_id":"rzp_test_...",...}}

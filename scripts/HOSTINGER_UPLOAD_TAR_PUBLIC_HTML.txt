@@ -1,0 +1,58 @@
+UPLOAD backend_new-deploy.tar.gz (your layout: Laravel in public_html)
+======================================================================
+
+FILE ON YOUR PC:
+  furniture/backend_new-deploy.tar.gz
+
+BEFORE UPLOAD — BACKUP
+----------------------
+File Manager: zip or rename current public_html folder (backup).
+
+UPLOAD
+------
+1. File Manager → paleturquoise site → public_html
+2. Upload backend_new-deploy.tar.gz into public_html/
+
+EXTRACT (Hostinger Browser Terminal — NOT Windows zip)
+-----------------------------------------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+tar -xzf backend_new-deploy.tar.gz
+rm -f backend_new-deploy.tar.gz
+
+Check:
+  ls -la artisan public/index.php config/payment.php
+
+KEEP YOUR .env
+--------------
+tar does NOT include .env (safe).
+After extract, your OLD .env should still be there if you did not delete it.
+If missing, copy from .env.hostinger.example and paste your DB + Razorpay keys.
+
+TERMINAL (use PHP 8.2)
+----------------------
+cd ~/domains/paleturquoise-horse-925665.hostingersite.com/public_html
+
+# Composer on Hostinger is composer2 (NOT /usr/bin/composer):
+/opt/alt/php82/usr/bin/php /usr/local/bin/composer2 install --no-dev --optimize-autoloader
+# If that fails, run: which composer2
+# Or local phar:
+#   curl -sS https://getcomposer.org/installer | /opt/alt/php82/usr/bin/php
+#   /opt/alt/php82/usr/bin/php composer.phar install --no-dev
+
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan route:clear
+/opt/alt/php82/usr/bin/php artisan migrate --force
+chmod -R 775 storage bootstrap/cache
+
+hPanel → PHP Configuration → PHP 8.2 or 8.3
+
+TEST
+----
+https://paleturquoise-horse-925665.hostingersite.com/api/health
+https://paleturquoise-horse-925665.hostingersite.com/api/payment/config
+  → razorpay_enabled: true
+
+STOREFRONT (separate site)
+--------------------------
+shreejeeblessingwood.in env:
+  NEXT_PUBLIC_API_URL=https://paleturquoise-horse-925665.hostingersite.com/api

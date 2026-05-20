@@ -1,0 +1,68 @@
+CORS ERROR — shreejeeblessingwood.in → paleturquoise API
+==========================================================
+
+Browser error:
+  "No Access-Control-Allow-Origin header"
+
+Usually TWO causes (fix BOTH):
+
+A) API .env missing your storefront domain
+B) /api/* returns 404 HTML (Hostinger page) — then NO CORS headers → same browser error
+
+---
+STEP 1 — Test API in browser (API site, not storefront)
+-------------------------------------------------------
+Open:
+  https://paleturquoise-horse-925665.hostingersite.com/api/health
+
+MUST see JSON like: {"success":true,"status":"ok"}
+If you see 404 / Hostinger page / 403 → fix document root FIRST (Step 3), then come back.
+
+---
+STEP 2 — Edit .env on API server (File Manager or Terminal)
+-----------------------------------------------------------
+Laravel .env is where artisan lives. Common paths:
+  public_html/.env
+  OR public_html/api/.env
+
+Add or update these lines (no trailing slashes on URLs):
+
+FRONTEND_URL=https://shreejeeblessingwood.in
+CORS_ALLOWED_ORIGINS=https://shreejeeblessingwood.in,https://www.shreejeeblessingwood.in,http://localhost:3000
+
+APP_URL=https://paleturquoise-horse-925665.hostingersite.com
+
+Save file.
+
+---
+STEP 3 — Document root (hPanel → API website → Domains)
+-------------------------------------------------------
+Must point to Laravel public folder:
+
+  If artisan is in public_html/     → document root: public_html/public
+  If artisan is in public_html/api/ → document root: public_html/api/public
+
+NOT public_html alone.
+
+---
+STEP 4 — Terminal (PHP 8.2 on Hostinger)
+----------------------------------------
+cd to folder that contains artisan, then:
+
+/opt/alt/php82/usr/bin/php artisan config:clear
+/opt/alt/php82/usr/bin/php artisan route:clear
+
+If vendor/ missing:
+/opt/alt/php82/usr/bin/php /usr/bin/composer install --no-dev
+
+---
+STEP 5 — Test again
+-------------------
+Browser:
+  https://paleturquoise-horse-925665.hostingersite.com/api/categories
+  → JSON list (not HTML error page)
+
+Then hard-refresh storefront: https://shreejeeblessingwood.in
+
+Storefront env (already correct — do NOT change unless API URL changes):
+  NEXT_PUBLIC_API_URL=https://paleturquoise-horse-925665.hostingersite.com/api

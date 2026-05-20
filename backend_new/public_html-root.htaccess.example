@@ -1,0 +1,8 @@
+# Upload to: public_html/.htaccess  (Laravel root — same folder as artisan)
+# Use ONLY if hPanel document root cannot be set to public_html/public.
+# If document root is already public_html/public, do NOT add this file.
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>
