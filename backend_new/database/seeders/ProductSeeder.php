@@ -710,6 +710,50 @@ class ProductSeeder extends Seeder
                 ]
             );
         }
+
+        $this->seedCatalogPdfProducts();
+    }
+
+    /**
+     * Products photographed from the dining, sofa, and luxury-sofa catalogues.
+     */
+    private function seedCatalogPdfProducts(): void
+    {
+        $path = database_path('data/catalog-products.json');
+        if (!is_file($path)) {
+            return;
+        }
+
+        $products = json_decode(file_get_contents($path), true);
+        if (!is_array($products)) {
+            return;
+        }
+
+        $categories = Category::all();
+        foreach ($products as $productData) {
+            $category = $categories->firstWhere('slug', $productData['category']);
+            if (!$category) {
+                continue;
+            }
+
+            Product::firstOrCreate(
+                ['name' => $productData['name']],
+                [
+                    'price' => $productData['price'],
+                    'original_price' => $productData['original_price'],
+                    'category_id' => $category->id,
+                    'subcategory' => $productData['subcategory'],
+                    'image' => $productData['image'],
+                    'rating' => $productData['rating'],
+                    'reviews' => $productData['reviews'],
+                    'in_stock' => $productData['in_stock'],
+                    'is_featured' => $productData['is_featured'],
+                    'hot_offer' => $productData['hot_offer'],
+                    'offer_percentage' => $productData['offer_percentage'],
+                    'description' => $productData['description'],
+                ]
+            );
+        }
     }
 }
 
