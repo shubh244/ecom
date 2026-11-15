@@ -64,7 +64,7 @@ class ProductController extends Controller
     {
         $products = Product::whereHas('category', function($query) use ($category) {
             $query->where('slug', $category);
-        })->with('category')->get();
+        })->with('category')->orderByDesc('created_at')->orderByDesc('id')->get();
         
         return response()->json([
             'success' => true,
@@ -79,6 +79,8 @@ class ProductController extends Controller
     {
         $products = Product::where('is_featured', true)
             ->with('category')
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
             ->limit(8)
             ->get();
         

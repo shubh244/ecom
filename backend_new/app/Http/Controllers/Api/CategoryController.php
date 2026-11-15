@@ -40,7 +40,7 @@ class CategoryController extends Controller
     public function getProducts($id): JsonResponse
     {
         $category = Category::findOrFail($id);
-        $products = $category->products()->with('category')->get();
+        $products = $category->products()->with('category')->orderByDesc('created_at')->orderByDesc('id')->get();
         
         return response()->json([
             'success' => true,
