@@ -14,6 +14,11 @@ PDF = os.environ.get(
     "OFFICE_PDF",
     r"c:\Users\PC\.cursor\projects\c-Users-PC-Desktop-New-folder-furniture-furniture\attachments\ef9289c1-d470-4c4a-ba02-a9787069fc98\WSE_office-compressed.pdf",
 )
+# Same catalogue, with the product photos in normal colour on white.
+COLOR_PDF = os.environ.get(
+    "OFFICE_COLOR_PDF",
+    r"c:\Users\PC\.cursor\projects\c-Users-PC-Desktop-New-folder-furniture-furniture\attachments\ef9289c1-d470-4c4a-ba02-a9787069fc98\Bed_cataloge-compressed.pdf",
+)
 OUT_DIR = os.path.join(ROOT, "backend_new", "public", "catalog", "office")
 DATA = os.path.join(ROOT, "backend_new", "database", "data", "office-products.json")
 
@@ -94,6 +99,7 @@ def title_for(code: str, description: str) -> str:
 def main() -> None:
     os.makedirs(OUT_DIR, exist_ok=True)
     document = pymupdf.open(PDF)
+    color_document = pymupdf.open(COLOR_PDF)
     products = []
     used_codes: dict[str, int] = {}
     serial = 0
@@ -159,8 +165,9 @@ def main() -> None:
             original = int(round(price * 1.4 / 100.0) * 100)
             if original <= price:
                 original = price + 1000
-            clip = pymupdf.Rect(box)
-            pixmap = page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=clip, alpha=False)
+            clip = pymupdf.Rect(box[0] + 4, box[1] + 4, box[2] - 16, box[3] - 4)
+            color_page = color_document[page_index]
+            pixmap = color_page.get_pixmap(matrix=pymupdf.Matrix(2, 2), clip=clip, alpha=False)
             image = Image.frombytes("RGB", (pixmap.width, pixmap.height), pixmap.samples)
             filename = f"{sku.lower()}.jpg"
             image.save(os.path.join(OUT_DIR, filename), "JPEG", quality=76, optimize=True)
@@ -187,6 +194,7 @@ def main() -> None:
                 }
             )
     document.close()
+    color_document.close()
     os.makedirs(os.path.dirname(DATA), exist_ok=True)
     with open(DATA, "w", encoding="utf-8") as handle:
         json.dump(products, handle, indent=2, ensure_ascii=False)
